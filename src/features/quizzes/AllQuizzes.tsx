@@ -1,23 +1,26 @@
-import { fetchQuizzes } from "../../api/quizApi.js";
-import { useLoaderData, useNavigate } from "react-router";
+import { useEffect } from "react";
+import { useNavigate } from "react-router";
+import { useAuth } from "@/contexts/AuthContext";
 import { useQuizzes } from "../../contexts/QuizzesContext";
-import Button from "../../ui/Button";
-import ConfirmAction from "../../ui/ConfirmAction";
 import QuizItem from "./QuizItem";
+import Button from "../../ui/Button";
 import Loader from "../../ui/Loader";
 
 export default function AllQuizzes() {
   const navigate = useNavigate();
 
-  const { isLoading, error } = useQuizzes();
+  const { currentUser } = useAuth();
+  const { getUserQuizzes, quizzes, status, error } = useQuizzes();
 
+  useEffect(() => {
+    async function loadQuizzes() {
+      if (currentUser?.id) await getUserQuizzes(currentUser.id);
+    }
 
-  const quizzes = useLoaderData();
+    loadQuizzes();
+  }, [currentUser]);
 
-
-  if (isLoading) return <Loader />;
-
-  if (!Array.isArray(quizzes)) return null;
+  if (status === "loading") return <Loader />;
 
   return (
     <div className="flex flex-col px-4 mx-8">
@@ -25,7 +28,7 @@ export default function AllQuizzes() {
         <h2 className="text-3xl font-bold">Quizzes</h2>
       </div>
 
-      {quizzes.length === 0 && (
+      {quizzes.length === 0 && status !== "loading" && (
         <div className="flex flex-col gap-5 items-start">
           <h3>Nenhum quiz disponível. Que tal criar o seu próprio?</h3>
           <Button styles={"standard"} onClick={() => navigate("/quiz/new")}>
@@ -35,21 +38,10 @@ export default function AllQuizzes() {
       )}
 
       <ul className="flex flex-col gap-2">
-        {quizzes.map((quiz: string) => (
+        {quizzes?.map((quiz: object) => (
           <QuizItem key={quiz.id} quiz={quiz} />
         ))}
       </ul>
-
-      <ConfirmAction />
     </div>
   );
-}
-
-export async function loader() {
-
-  const quizzes = await fetchQuizzes();
-
-
-  return quizzes
-
 }

@@ -27,6 +27,10 @@ textarea:focus {
 
 }
 
+ul {
+  list-style: none;
+}
+
 :root {
   font-family: font-noto, Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -52,7 +56,7 @@ textarea:focus {
 
   --popover-foreground: oklch(0.145 0 0);
 
-  --primary: oklch(0.205 0 0);
+  --primary: oklch(58.5% 0.233 277.117);
 
   --primary-foreground: oklch(0.985 0 0);
 
@@ -64,7 +68,7 @@ textarea:focus {
 
   --muted-foreground: oklch(0.556 0 0);
 
-  --accent: oklch(0.97 0 0);
+  --accent: oklch(62.3% 0.214 259.815);
 
   --accent-foreground: oklch(0.205 0 0);
 

@@ -1,5 +1,5 @@
 import { createContext, useContext, useReducer } from "react";
-import { fetchQuiz, addQuiz, updateQuiz } from '../api/quizApi.js'
+import { fetchQuiz, addQuiz, updateQuiz } from "../api/supabaseApi.js";
 
 const BuilderContext = createContext();
 
@@ -10,6 +10,9 @@ const initialState = {
   draftStatus: "Saving",
   hasRestored: false,
   lastSynced: null,
+  enableTimer: false,
+  shuffle: false,
+  customScore: false,
   currentQuiz: {
     id: null,
     title: "",
@@ -20,8 +23,23 @@ const initialState = {
         answers: [
           {
             id: 1,
-            content: "Essa é sua primeira resposta",
-            correctAnswer: true,
+            content: "Essa é sua primeira resposta 1",
+            correct_answer: true,
+          },
+          {
+            id: 2,
+            content: "Resposta 2",
+            correct_answer: false,
+          },
+          {
+            id: 3,
+            content: "Resposta 3",
+            correct_answer: false,
+          },
+          {
+            id: 4,
+            content: "Resposta 4",
+            correct_answer: false,
           },
         ],
       },
@@ -30,7 +48,6 @@ const initialState = {
   curQuestion: {},
   error: null,
 };
-
 
 function reducer(state, action) {
   switch (action.type) {
@@ -43,7 +60,7 @@ function reducer(state, action) {
       return {
         ...state,
         isLoading: false,
-        status: 'ready'
+        status: "ready",
       };
     case "setNewQuiz": {
       return {
@@ -61,8 +78,8 @@ function reducer(state, action) {
       return {
         ...state,
         currentQuiz: action.payload,
-        curQuestion: action.payload.questions[0],
-    };
+        curQuestion: action.payload?.questions[0],
+      };
 
     case "setCurQuestion":
       return {
@@ -78,14 +95,62 @@ function reducer(state, action) {
           title: action.payload,
         },
       };
-    case "addQuestion":
+    case "addQuestion": {
+      const newId = state.currentQuiz.questions.length
+        ? Math.max(
+            ...state.currentQuiz.questions.map((question) => question?.id)
+          ) + 1
+        : 1;
+
+      const newQuestion = {
+        id: newId,
+        description: `Nova pergunta ${newId}`,
+        answers: initialState.currentQuiz.questions[0].answers,
+        type: "multiChoice",
+      };
+
       return {
         ...state,
         currentQuiz: {
           ...state.currentQuiz,
-          questions: [...state.currentQuiz?.questions, action.payload],
+          questions: [...state.currentQuiz?.questions, newQuestion],
         },
       };
+    }
+
+    case "addTrueOrFalseQuestion": {
+      const newId = state.currentQuiz.questions.length
+        ? Math.max(
+            ...state.currentQuiz.questions.map((question) => question?.id)
+          ) + 1
+        : 1;
+
+      const newQuestion = {
+        id: newId,
+        description: `Nova Pergunta ${newId}`,
+        answers: [
+          {
+            id: Date.now(),
+            content: "Verdadeiro",
+            correct_answer: true,
+          },
+          {
+            id: Date.now() + 1,
+            content: "Falso",
+            correct_answer: false,
+          },
+        ],
+        type: "trueOrFalse",
+      };
+
+      return {
+        ...state,
+        currentQuiz: {
+          ...state.currentQuiz,
+          questions: [...state?.currentQuiz.questions, newQuestion],
+        },
+      };
+    }
     case "updateQuestion": {
       const newQuestions = state.currentQuiz.questions.map((question) =>
         question.id === action.payload.id ? action.payload : question
@@ -146,12 +211,34 @@ function reducer(state, action) {
       };
     }
 
-    case "saveChanges": 
-    return {
-      ...state,
-      currentQuiz: action.payload
+    case "setCorrectAnswer": {
+      const updatedQuestions = state.currentQuiz.questions.map((question) =>
+        question.id === action.payload.questionId
+          ? { ...question, answers: action.payload.answers }
+          : question
+      );
+
+      const updatedCurQuestion = updatedQuestions?.find(
+        (question) => question.id === action.payload.questionId
+      );
+
+      console.log(updatedCurQuestion);
+      return {
+        ...state,
+        currentQuiz: {
+          ...state.currentQuiz,
+          questions: updatedQuestions,
+        },
+        curQuestion: updatedCurQuestion,
+      };
     }
-    
+
+    case "saveChanges":
+      return {
+        ...state,
+        currentQuiz: action.payload,
+      };
+
     case "saveQuiz":
       return {
         ...state,
@@ -159,17 +246,39 @@ function reducer(state, action) {
         currentQuiz: initialState.currentQuiz,
         curQuestion: {},
         error: null,
-    };
+      };
 
-    case "saveDraft": 
+    case "saveDraft":
       return {
         ...state,
+        status: "ready",
         draftStatus: action.payload,
-        hasRestored: true,
-        lastSynced: new Date().toLocaleString()
-      }
+        lastSynced: new Date().toLocaleString(),
+      };
 
+    case "setTimer":
+      return {
+        ...state,
+        enableTimer: state.enableTimer ? false : true,
+      };
 
+    case "setSuffle":
+      return {
+        ...state,
+        shuffle: state.shuffle ? false : true,
+      };
+
+    case "setCustomScore":
+      return {
+        ...state,
+        customScore: state.customScore ? false : true,
+      };
+
+    case "setError":
+      return {
+        ...state,
+        error: action.payload,
+      };
     case "resetBuilder":
       return {
         ...initialState,
@@ -179,58 +288,95 @@ function reducer(state, action) {
   }
 }
 
-function BuilderProvider({children}) {
+function BuilderProvider({ children }) {
+  const [
+    {
+      isLoading,
+      status,
+      draftStatus,
+      lastSynced,
+      enableTimer,
+      shuffle,
+      customScore,
+      currentQuiz,
+      questions,
+      curQuestion,
+      title,
+    },
+    dispatch,
+  ] = useReducer(reducer, initialState);
 
-    const [{isLoading, status, draftStatus, hasRestored, lastSynced, currentQuiz, questions, curQuestion, title }, dispatch] = useReducer(reducer, initialState)
-    
-      async function handleGetQuiz(quizId) {
-        dispatch({ type: "dataLoading" });
-        try {
-          const currentQuiz = await fetchQuiz(quizId);
+  const toggleTimer = () => dispatch({ type: "setTimer" });
+  const toggleSuffle = () => dispatch({ type: "setShuffle" });
+  const toggleCustomScore = () => dispatch({ type: "setCustomScore" });
 
-          return currentQuiz[0];
-        } catch (error) {
-          console.error(error);
-          dispatch({ type: "loadError", payload: error });
-        } finally {
-          dispatch({ type: "dataLoaded" });
-        }
-      }
+  async function handleGetQuiz(quizId) {
+    dispatch({ type: "dataLoading" });
+    try {
+      const currentQuiz = await fetchQuiz(quizId);
 
-    async function handleSaveQuiz(quiz) {
-      dispatch({type: "dataLoading"})
-      try {
-        const res = await addQuiz(quiz);
-
-        if (!res.ok) throw new Error("Erro ao salvar o quiz ;")
-      } catch(error) {
-        console.error(error)
-        throw error
-      } finally {
-        dispatch({type: "saveQuiz"})
-        
-      } 
+      return currentQuiz;
+    } catch (error) {
+      console.error(error);
+      dispatch({ type: "setError", payload: error });
+    } finally {
+      dispatch({ type: "dataLoaded" });
     }
+  }
 
-    async function handleUpdateQuiz(quiz) {
-      dispatch({type: "dataLoading"})
-      try {
-        const result = await updateQuiz(quiz);
+  async function handleSaveQuiz(quiz) {
+    dispatch({ type: "dataLoading" });
+    try {
+      const res = await addQuiz(quiz);
 
-
-        console.log(result)
-      } catch(error) {
-        console.error(error)
-        throw error
-      } finally {
-        // dispatch({type: "saveQuiz"})
-      }
+      if (!res.ok) throw new Error("Erro ao salvar o quiz ;");
+    } catch (error) {
+      console.error(error);
+      throw error;
+    } finally {
+      dispatch({ type: "saveQuiz" });
     }
+  }
 
-    return (
-    <BuilderContext.Provider value={{isLoading, status, draftStatus, hasRestored, lastSynced, currentQuiz, questions, curQuestion, title, handleGetQuiz, handleSaveQuiz, handleUpdateQuiz, dispatch}}>
-        {children}
-    </BuilderContext.Provider>)
+  async function handleUpdateQuiz(quiz) {
+    dispatch({ type: "dataLoading" });
+    try {
+      const result = await updateQuiz(quiz);
+
+      console.log(result);
+    } catch (error) {
+      console.error(error);
+      throw error;
+    } finally {
+      // dispatch({type: "saveQuiz"})
+    }
+  }
+
+  return (
+    <BuilderContext.Provider
+      value={{
+        isLoading,
+        status,
+        draftStatus,
+        lastSynced,
+        enableTimer,
+        shuffle,
+        customScore,
+        currentQuiz,
+        questions,
+        curQuestion,
+        title,
+        handleGetQuiz,
+        handleSaveQuiz,
+        handleUpdateQuiz,
+        toggleSuffle,
+        toggleTimer,
+        toggleCustomScore,
+        dispatch,
+      }}>
+      {children}
+    </BuilderContext.Provider>
+  );
 }
 
 function useBuilder() {

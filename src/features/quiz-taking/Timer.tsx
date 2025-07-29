@@ -3,24 +3,18 @@ import { useQuizzes } from '../../contexts/QuizzesContext'
 
 export default function Timer() {
 
-    const { currentQuiz } = useQuizzes()
+    const { dispatch, timer } = useQuizzes();
 
-
-    const [timer, setTimer] = useState(60 * currentQuiz?.questions?.length)
-
-
-    const mins = Math.floor(timer / 60)
-    const secs = timer % 60
+    const mins = Math.floor(timer / 60);
+    const secs = timer % 60;
 
     useEffect(() => {
-        const id = setInterval(() => {
-            setTimer((cur) => cur - 1)
-        }, 1000)
+      const id = setInterval(() => {
+        dispatch({ type: "tick" });
+      }, 1000);
 
-
-
-        return () => clearInterval(id)
-    })
+      return () => clearInterval(id);
+    }, [dispatch]);
 
   return (
     <div className='flex items-center'>

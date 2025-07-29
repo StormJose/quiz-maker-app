@@ -145,39 +145,42 @@ export default function DragAndDropWrapper({
       // //   // limitHorizontalRange(parentWidth)
       // ]}
     >
-      <Carousel  
-        opts={{align: "start"}} 
-        className="max-w-full"
-        orientation={orientation}
-      >
+      <Carousel
+        opts={{ align: "start" }}
+        className="max-w-full "
+        orientation={orientation}>
         <SortableContext
-          items={collection?.map((item) => item.id)}
+          items={collection?.map((item) => item?.id)}
           // strategy={horizontalListSortingStrategy}
-          >
-    
-          <CarouselContent>
+        >
+          <CarouselContent
+            className={`${orientation == "horizontal" ? "px-4" : ""}  gap-2`}>
             {collection.map((item) => (
-                <CarouselItem key={item.id}  className={` self-start ${orientation === 'vertical' ? 'basis-2' : 'basis-36'}`}>
-                <SortableItem id={item.id}>
+              <CarouselItem
+                key={item?.id}
+                className={` self-start ${
+                  orientation === "vertical" ? "basis-2" : "basis-36"
+                }`}>
+                <SortableItem id={item?.id}>
                   {(listeners) => (
                     <ItemComponent item={item} listeners={listeners} />
                   )}
                 </SortableItem>
-                  </CarouselItem>
+              </CarouselItem>
             ))}
           </CarouselContent>
-          {
-            controlBtns && <>
-            <CarouselPrevious/>
-            <CarouselNext/>
+          {controlBtns && (
+            <>
+              <CarouselPrevious />
+              <CarouselNext />
             </>
-        }
+          )}
         </SortableContext>
       </Carousel>
       <DragOverlay dropAnimation={null}>
         {activeId ? (
           <ItemComponent
-            item={collection.find((item) => item.id === activeId)}
+            item={collection.find((item) => item?.id === activeId)}
             active={activeId}
           />
         ) : null}

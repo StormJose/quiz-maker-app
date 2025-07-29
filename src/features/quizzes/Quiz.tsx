@@ -1,46 +1,47 @@
-import { fetchQuiz } from "../../api/quizApi.js";
-import { useLoaderData } from "react-router"
 import { useEffect } from "react";
+import { fetchQuiz } from "../../api/supabaseApi.js";
 import { useQuizzes } from "../../contexts/QuizzesContext.js";
 import Button from "../../ui/Button";
-
+import { useLoaderData } from "react-router";
 
 export default function Quiz() {
-
-  const quiz = useLoaderData();
-
   const { dispatch } = useQuizzes();
 
+  const { data } = useLoaderData();
+
   useEffect(() => {
-      if (quiz) {
-        dispatch({type: "setCurrentQuiz", payload: quiz})
-      }
+    function loadCurrentQuiz() {
+      dispatch({ type: "setCurrentQuiz", payload: data });
+    }
 
-  }, [dispatch, quiz])
+    loadCurrentQuiz();
+  }, [data, dispatch]);
 
-
-  if (Object.entries(quiz).length === 0) return <div>Nenhum quiz encontrado</div>
+  if (Object.entries(data).length === 0)
+    return <div>Nenhum quiz encontrado</div>;
 
   return (
     <div className="flex justify-between px-4 py-10">
-        <div className="flex flex-col gap-1.5">
-            <h3 className="font-bold">
-                {quiz?.title}
-            </h3>
-            <p className="text-sm">{quiz?.description}</p>
-        </div>
-        <div>
-
-          
-        <Button styles={"standard"} to={`questions/0`} >Iniciar quiz</Button>
-        </div>
+      <div className="flex flex-col gap-1.5">
+        <h3 className="font-bold">{data?.title}</h3>
+        <p className="text-sm">{data?.description}</p>
+      </div>
+      <div>
+        <Button
+          onClick={() => dispatch({ type: "startQuiz" })}
+          styles={"standard"}
+          to={`questions/0`}>
+          Iniciar quiz
+        </Button>
+      </div>
     </div>
-  )
+  );
 }
 
+export function loader({ params }) {
+  const { quizId } = params;
 
-export async function loader({params}) {
-  const quiz = await fetchQuiz(params.quizId);
+  const data = fetchQuiz(quizId);
 
-  return quiz[0]
+  return data;
 }

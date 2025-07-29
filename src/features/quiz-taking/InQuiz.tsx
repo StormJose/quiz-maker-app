@@ -1,4 +1,4 @@
-import { fetchQuiz } from "../../api/quizApi.js";
+import { fetchQuiz } from "../../api/supabaseApi.js";
 import { useEffect } from "react";
 import { useLoaderData, useNavigate } from "react-router";
 import { useQuizzes } from "../../contexts/QuizzesContext.js";
@@ -7,10 +7,9 @@ import Button from "../../ui/Button.js";
 import QuizMenu from "./QuizMenu.js";
 
 export default function InQuiz() {
-  
   const navigate = useNavigate();
   const { dispatch, currentQuiz, selectedAnswers, totalScore } = useQuizzes();
-  const { quiz, questionIndex } = useLoaderData();
+  const { data: quiz, questionIndex } = useLoaderData();
 
   // const quiz = {}
   // const questionIndex = 0
@@ -24,27 +23,25 @@ export default function InQuiz() {
 
   const isFirst = questionIndex === 0;
   const isLast = questionIndex === questions.length - 1;
-  
+
   const allAnswersChecked = selectedAnswers.length === quiz.questions?.length;
   const IsTryOut = location.pathname
     .split("/")
     .filter((segment) => segment === "tryout")[0];
 
-
-    useEffect(() => {
-
-      dispatch({type: "setCurrentQuiz", payload: quiz})
-      dispatch({type: "setCurQuestion", payload: curQuestion})
-    }, [quiz, curQuestion]);  
-
+  useEffect(() => {
+    dispatch({ type: "setCurrentQuiz", payload: quiz });
+    dispatch({ type: "setCurQuestion", payload: curQuestion });
+  }, [quiz, curQuestion]);
 
   function handleNextQuestion() {
     if (!isLast) navigate(`/quizzes/${quiz.id}/questions/${questionIndex + 1}`);
   }
 
   function handlePreviousQuestion() {
-    if (!isFirst) navigate(`/quizzes/${quiz.id}/questions/${questionIndex - 1}`);
-    }
+    if (!isFirst)
+      navigate(`/quizzes/${quiz.id}/questions/${questionIndex - 1}`);
+  }
 
   function handleSelectAnswer(answer) {
     const newAnswer = {
@@ -67,12 +64,20 @@ export default function InQuiz() {
     navigate(-1);
   }
 
+  function handleBeforeUnload(e) {
+    e.preventDefault();
 
-  if (currentQuiz === null) return
+    dispatch({});
+
+    e.returnValue = true;
+  }
+
+  window.addEventListener("beforeunload", handleBeforeUnload);
+
+  if (currentQuiz === null) return;
 
   return (
     <div className=" relative bg-main-500 max-w-full">
-      
       <div className="self-end">
         {IsTryOut && (
           <Button
@@ -98,8 +103,8 @@ export default function InQuiz() {
       </div>
 
       <div className="grid grid-cols-1 gap-y-8 px-4">
-        <QuizMenu/>
-        <QuizNav/>
+        <QuizMenu />
+        <QuizNav />
       </div>
 
       <div className="text-center mx-4">
@@ -112,7 +117,7 @@ export default function InQuiz() {
               } cursor-pointer px-4 py-5 border-[1px] border-gray-300 rounded-xl text-start`}
               key={answer.id}
               onClick={() => handleSelectAnswer(answer)}>
-              {answer.content}
+              {answer.text}
             </li>
           ))}
         </ul>
@@ -151,23 +156,21 @@ export default function InQuiz() {
 export async function loader({ params }) {
   const { quizId, questionId } = params;
 
-  const quiz = await fetchQuiz(quizId);
+  const { data, error } = await fetchQuiz(quizId);
 
-  if (quiz.length === 0)
-    return {
-      quiz,
-      questionIndex: 0,
-    };
+  if (error) throw new Response("Erro ao carregar o quiz", { status: 404 });
+
+  console.log(data);
 
   const index = Number(questionId);
-  const questions = quiz[0]?.questions;
+  const questions = data?.questions;
 
   if (!questions || isNaN(index) || index < 0 || index >= questions.length) {
     throw new Response("Questão não encontrada", { status: 404 });
   }
 
   return {
-    quiz: quiz[0],
+    data,
     questionIndex: index,
   };
 }

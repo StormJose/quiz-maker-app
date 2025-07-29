@@ -7,32 +7,32 @@ import Loader from "../../ui/Loader";
 export default function Question() {
   
   
-  const {curQuestion, currentQuiz, dispatch: builderDispatch} = useBuilder()
-  const [description, setDescription] = useState(curQuestion.description)
+  const {
+    curQuestion,
+    currentQuiz,
+    dispatch: builderDispatch,
+    customScore,
+  } = useBuilder();
+  const [description, setDescription] = useState(curQuestion.description);
 
   // if (!currentQuiz.questions.length) return <p>Erro ao carregar a pergunta :/</p>;
-  
+
   useEffect(() => {
     setDescription(curQuestion.description);
-  }, [curQuestion])
+  }, [curQuestion]);
 
-  async function handleChangeDescription(e:string) {
-    setDescription(e.target.value)
+  async function handleChangeDescription(e: string) {
+    setDescription(e.target.value);
   }
 
   async function handleConfirmDescription() {
-
     const updatedQuestion = {
       ...curQuestion,
-      description
-    }
+      description,
+    };
 
-    await builderDispatch({type: "updateQuestion", payload: updatedQuestion})
-
+    await builderDispatch({ type: "updateQuestion", payload: updatedQuestion });
   }
-
-
-
 
   return (
     <div>
@@ -47,6 +47,14 @@ export default function Question() {
         onBlur={handleConfirmDescription}
         value={description}></textarea>
 
+      {customScore && (
+        <div className="my-4">
+          <label className="flex gap-2">
+            Pontos
+            <input className="border-[1.88px] rounded-lg border-gray-300 self-start" />
+          </label>
+        </div>
+      )}
       <Answers />
     </div>
   );

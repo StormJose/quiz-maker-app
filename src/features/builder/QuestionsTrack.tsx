@@ -11,13 +11,11 @@ export default function QuestionsTrack () {
 
   return (
     <DragAndDropWrapper
+      orientation={"horizontal"}
       collection={currentQuiz.questions}
       dispatchAction={"reorderQuestions"}
       ItemComponent={QuestionItem}
       controlBtns
-
-      />
-      
-  
+    />
   );
 }

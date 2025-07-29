@@ -20,66 +20,60 @@ export default function Builder() {
   const curRouteSegment = location.pathname.split('/').filter((segment) => segment === 'edit')[0]
  
   const { isLoading: quizzesLoading, quizzes } = useQuizzes()
-  const { isLoading, status, title, currentQuiz, handleGetQuiz, handleSaveQuiz, handleUpdateQuiz, dispatch: builderDispatch } = useBuilder();
-  
-  
+  const {
+    isLoading,
+    status,
+    title,
+    currentQuiz,
+    handleGetQuiz,
+    handleSaveQuiz,
+    handleUpdateQuiz,
+    dispatch: builderDispatch,
+  } = useBuilder();
+
   // Loading quiz draft
-  const onRestoreAction = (quiz) => builderDispatch({type: "setCurrentQuiz", payload: quiz})
-  const { draftStatus } = useAutoSaveQuiz(quizId, currentQuiz, onRestoreAction, status);
+  const onRestoreAction = (quiz) =>
+    builderDispatch({ type: "setCurrentQuiz", payload: quiz });
+  const { draftStatus } = useAutoSaveQuiz(
+    quizId,
+    currentQuiz,
+    onRestoreAction,
+    status
+  );
 
-  
   useEffect(() => {
-    builderDispatch({type: "dataLoading"})
+    builderDispatch({ type: "dataLoading" });
     async function loadQuizData() {
-      const quiz = await handleGetQuiz(quizId)
-  
-      if (quiz) {
-          builderDispatch({type: "setCurrentQuiz", payload: quiz})
-      }
- 
-      if (quiz === undefined && quizId === undefined) {
-          builderDispatch({ type: "setNewQuiz", payload: quizzes });
-          console.log(currentQuiz);
-      } 
+      const { data } = await handleGetQuiz(quizId);
 
-        builderDispatch({type: "dataLoaded"})
+      if (data) {
+        builderDispatch({ type: "setCurrentQuiz", payload: data });
+      }
+
+      if (data === null && quizId === undefined) {
+        builderDispatch({ type: "setNewQuiz", payload: quizzes });
+        console.log(currentQuiz);
+      }
+
+      builderDispatch({ type: "dataLoaded" });
     }
-        
-        loadQuizData()
-      }, [quizId, builderDispatch]    
-    )
 
+    loadQuizData();
+  }, [quizId, builderDispatch]);
 
+  if (isLoading) return <Loader />;
 
-  async function handleSubmitQuiz(e) {
-      e.preventDefault();
+  if (currentQuiz === null) return <div>Erro ao carregar quiz</div>;
 
-      if (currentQuiz.id !== null) {
-        navigate('/quizzes')
-        await handleUpdateQuiz(currentQuiz)
-      }
-      else {
-        navigate('/quizzes')
-        await handleSaveQuiz(currentQuiz)
-      }
-    
-  }
-
-  if (isLoading) return <Loader/>
-
-  if (currentQuiz === null) return <div>Erro ao carregar quiz</div>
-  
   return (
     <div className="px-4 flex flex-col gap-12">
-      <form onSubmit={handleSubmitQuiz}>
-     
+      <form>
         <QuizInformation />
         <div className="ml-12 my-4">
           <QuestionsTrack />
         </div>
-       
 
-        <div className="flex justify-center gap-2">
+        {/* <div className="flex justify-center gap-2">
           {curRouteSegment === "edit" && (
             <h4 className="flex items-center cursor-pointer gap-1.5 px-2 bg-amber-400 rounded-2xl text-center ">
               <svg
@@ -99,7 +93,7 @@ export default function Builder() {
               <span className="pt-0.5 font-bold text-sm">Modo de edição</span>
             </h4>
           )}
-        </div>
+        </div> */}
 
         <Toolbox />
 

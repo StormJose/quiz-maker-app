@@ -11,7 +11,7 @@ export default function Sidebar() {
 
     const pathnameArr = location.pathname.split('/')
     const curRoute = pathnameArr[pathnameArr.length - 1]
-    console.log(curRoute)
+
     const menus = [
       {
         id: 1,
@@ -35,21 +35,23 @@ export default function Sidebar() {
 
   return (
     <div>
-        <ul className="flex flex-col gap-2 text-secondary-foreground">
-          { menus.map((menu) => (
-            <li  key={menu.id}>
-              <Button onClick={() => navigate(menu.path)} styles={ (curRoute === menu.path || curRoute === 'new' && menu.path === '') &&  "standard"}>
-                <span>
-                    {menu.icon}
-                </span>
-                <p>
-                     {menu.title}
-                </p> 
-                </Button>
-            </li>
-          ))
-          }
-        </ul>
+      <ul className="flex flex-col gap-2 text-secondary-foreground">
+        {menus.map((menu) => (
+          <li key={menu.id}>
+            <Button
+              onClick={() => navigate(menu.path)}
+              styles={
+                (curRoute === menu.path ||
+                  (curRoute === "edit" && menu.path === "") ||
+                  (curRoute === "new" && menu.path === "")) &&
+                "standard"
+              }>
+              <span>{menu.icon}</span>
+              <p>{menu.title}</p>
+            </Button>
+          </li>
+        ))}
+      </ul>
     </div>
-  )
+  );
 }
