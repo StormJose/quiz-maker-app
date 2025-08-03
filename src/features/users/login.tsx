@@ -48,11 +48,10 @@ export default function Login() {
 
         if (Object.entries(formErrors).length === 0) {
             try {
+             const user = await signIn(form.email, form.password);
 
-              await signIn(form.email, form.password)
-
-
-
+             if (user) navigate("/");
+             
             } catch(error) {
                 console.error(error)
     

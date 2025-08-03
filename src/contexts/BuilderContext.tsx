@@ -1,5 +1,5 @@
 import { createContext, useContext, useReducer } from "react";
-import { fetchQuiz, addQuiz, updateQuiz } from "../api/supabaseApi.js";
+import { fetchQuiz, insertQuiz, updateQuiz } from "../api/supabaseApi.js";
 
 const BuilderContext = createContext();
 
@@ -16,34 +16,38 @@ const initialState = {
   currentQuiz: {
     id: null,
     title: "",
+    description: "Seu novo quiz",
     questions: [
       {
-        id: 1,
+        id: new Date().getTime().toString(),
         description: "Essa é sua primeira pergunta",
         answers: [
           {
-            id: 1,
+            id: new Date().getTime().toString() + 1,
             content: "Essa é sua primeira resposta 1",
             correct_answer: true,
           },
           {
-            id: 2,
+            id: new Date().getTime().toString() + 2,
             content: "Resposta 2",
             correct_answer: false,
           },
           {
-            id: 3,
+            id: new Date().getTime().toString() + 3,
             content: "Resposta 3",
             correct_answer: false,
           },
           {
-            id: 4,
+            id: new Date().getTime().toString() + 4,
             content: "Resposta 4",
             correct_answer: false,
           },
         ],
+        order: 1,
+        type: "multiple_choice",
       },
     ],
+    published: false,
   },
   curQuestion: {},
   error: null,
@@ -67,8 +71,8 @@ function reducer(state, action) {
         ...state,
         currentQuiz: {
           ...initialState.currentQuiz,
-          id: new Date().getTime().toString(),
           title: `Novo Quiz ${action.payload.length + 1}`,
+          id: new Date().getTime().toString(),
         },
         curQuestion: initialState.currentQuiz.questions[0],
         isLoading: false,
@@ -102,11 +106,14 @@ function reducer(state, action) {
           ) + 1
         : 1;
 
+      const newOrder = state.currentQuiz.questions.length + 1;
+
       const newQuestion = {
         id: newId,
-        description: `Nova pergunta ${newId}`,
+        description: `Nova pergunta ${newOrder}`,
         answers: initialState.currentQuiz.questions[0].answers,
-        type: "multiChoice",
+        type: "multiple_choice",
+        order: newOrder,
       };
 
       return {
@@ -125,6 +132,8 @@ function reducer(state, action) {
           ) + 1
         : 1;
 
+      const newOrder = state.currentQuiz.questions.length + 1;
+
       const newQuestion = {
         id: newId,
         description: `Nova Pergunta ${newId}`,
@@ -140,7 +149,8 @@ function reducer(state, action) {
             correct_answer: false,
           },
         ],
-        type: "trueOrFalse",
+        type: "true_or_false",
+        order: newOrder,
       };
 
       return {
@@ -313,28 +323,25 @@ function BuilderProvider({ children }) {
   async function handleGetQuiz(quizId) {
     dispatch({ type: "dataLoading" });
     try {
-      const currentQuiz = await fetchQuiz(quizId);
+      const data = await fetchQuiz(quizId);
 
-      return currentQuiz;
+      return data;
     } catch (error) {
-      console.error(error);
       dispatch({ type: "setError", payload: error });
     } finally {
       dispatch({ type: "dataLoaded" });
     }
   }
 
-  async function handleSaveQuiz(quiz) {
+  async function handleInsertQuiz(quiz) {
     dispatch({ type: "dataLoading" });
     try {
-      const res = await addQuiz(quiz);
+      const data = await insertQuiz(quiz);
 
-      if (!res.ok) throw new Error("Erro ao salvar o quiz ;");
+      return data;
     } catch (error) {
-      console.error(error);
+      dispatch({ type: "setError", payload: error });
       throw error;
-    } finally {
-      dispatch({ type: "saveQuiz" });
     }
   }
 
@@ -345,7 +352,6 @@ function BuilderProvider({ children }) {
 
       console.log(result);
     } catch (error) {
-      console.error(error);
       throw error;
     } finally {
       // dispatch({type: "saveQuiz"})
@@ -367,7 +373,7 @@ function BuilderProvider({ children }) {
         curQuestion,
         title,
         handleGetQuiz,
-        handleSaveQuiz,
+        handleInsertQuiz,
         handleUpdateQuiz,
         toggleSuffle,
         toggleTimer,

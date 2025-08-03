@@ -12,21 +12,21 @@ import Toolbox from "./toolbox";
 
 
 export default function Builder() {
-
-  const navigate = useNavigate()
   const location = useLocation();
   const { quizId } = useParams();
-  
-  const curRouteSegment = location.pathname.split('/').filter((segment) => segment === 'edit')[0]
- 
-  const { isLoading: quizzesLoading, quizzes } = useQuizzes()
+
+  const curRouteSegment = location.pathname
+    .split("/")
+    .filter((segment) => segment === "edit")[0];
+
+  const { isLoading: quizzesLoading, quizzes } = useQuizzes();
   const {
     isLoading,
     status,
     title,
     currentQuiz,
     handleGetQuiz,
-    handleSaveQuiz,
+    handleInsertQuiz,
     handleUpdateQuiz,
     dispatch: builderDispatch,
   } = useBuilder();
@@ -34,7 +34,8 @@ export default function Builder() {
   // Loading quiz draft
   const onRestoreAction = (quiz) =>
     builderDispatch({ type: "setCurrentQuiz", payload: quiz });
-  const { draftStatus } = useAutoSaveQuiz(
+
+  const { draftStatus, savedDraft } = useAutoSaveQuiz(
     quizId,
     currentQuiz,
     onRestoreAction,
@@ -44,15 +45,15 @@ export default function Builder() {
   useEffect(() => {
     builderDispatch({ type: "dataLoading" });
     async function loadQuizData() {
-      const { data } = await handleGetQuiz(quizId);
+      const data = await handleGetQuiz(quizId);
 
+      console.log(savedDraft);
       if (data) {
         builderDispatch({ type: "setCurrentQuiz", payload: data });
       }
 
-      if (data === null && quizId === undefined) {
+      if (data === undefined && quizId === undefined) {
         builderDispatch({ type: "setNewQuiz", payload: quizzes });
-        console.log(currentQuiz);
       }
 
       builderDispatch({ type: "dataLoaded" });
@@ -60,6 +61,14 @@ export default function Builder() {
 
     loadQuizData();
   }, [quizId, builderDispatch]);
+
+  function beforeUnloadHandler(e) {
+    e.preventDefault();
+
+    e.returnValue = true;
+  }
+
+  window.addEventListener("beforeunload", beforeUnloadHandler);
 
   if (isLoading) return <Loader />;
 
@@ -100,8 +109,7 @@ export default function Builder() {
         <Question />
       </form>
     </div>
-  ); 
-
+  );
 }
 
 

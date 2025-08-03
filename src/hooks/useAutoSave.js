@@ -10,15 +10,25 @@ export function useAutoSaveQuiz(quizId = null, quizData, onRestore, status) {
   const lastSyncedRef = useRef(null);
   const hasSyncedRef = useRef(false);
 
-  const { draftStatus, lastSynced, handleUpdateQuiz, dispatch } = useBuilder();
+  const {
+    draftStatus,
+    lastSynced,
+    handleInsertQuiz,
+    handleUpdateQuiz,
+    dispatch,
+  } = useBuilder();
 
-  if (!quizId) quizId = new Date().getTime().toString();
+  if (!quizId) quizId = `${new Date().getTime().toString()}`;
+
   const quizKey = `quiz_draft_${quizId}`;
+
+  // const isTemporary = quizKey.includes("tempo");
+
+  const savedDraft = localStorage.getItem(quizKey);
 
   useEffect(() => {
     if (status !== "ready" || hasRestored) return;
 
-    const savedDraft = localStorage.getItem(quizKey);
     if (savedDraft) {
       const parsed = JSON.parse(savedDraft);
       onRestore(parsed);
@@ -39,15 +49,25 @@ export function useAutoSaveQuiz(quizId = null, quizData, onRestore, status) {
     if (status !== "ready" || (!hasRestored && areEqual(quizData, draft)))
       return;
 
-    const newDraftString = JSON.stringify(quizData);
-    localStorage.setItem(quizKey, newDraftString);
-    setDraft(quizData);
+    const timeout = setTimeout(async () => {
+      try {
+        const newDraftString = JSON.stringify(quizData);
+        localStorage.setItem(quizKey, newDraftString);
 
+        // await handleInsertQuiz(quizData);
+      } catch (error) {
+        throw error;
+      }
+    }, 1000);
+
+    setDraft(quizData);
     dispatch({
       type: "saveDraft",
       payload: isOnline ? "Saving" : "Offline",
     });
     setHasRestored(true);
+
+    return () => clearTimeout(timeout);
   }, [quizData, status, hasRestored, draft]);
 
   ///////////////////////////////////////////////////
@@ -70,13 +90,13 @@ export function useAutoSaveQuiz(quizId = null, quizData, onRestore, status) {
       }
     }, 1000);
 
+    if (quizKey.includes("tempo")) localStorage.removeItem(quizKey);
     return () => clearTimeout(timeout);
   }, [draft, status, hasRestored, isOnline]);
 
   const clearDraft = useCallback(() => {
     localStorage.removeItem(quizKey);
   }, [quizKey]);
-
   return {
     draftStatus,
     lastSynced,

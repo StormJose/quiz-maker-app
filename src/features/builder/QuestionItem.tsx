@@ -60,7 +60,7 @@ export default function QuestionItem({ item, onSelect, listeners, active }) {
           } 
           `}>
         <Grip width={12} />
-        Pergunta {item?.id}
+        Pergunta {item?.order}
       </li>
     </Button>
   );

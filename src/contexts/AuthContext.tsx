@@ -5,136 +5,126 @@ import { createContext, useCallback, useContext, useEffect, useReducer } from "r
 
 
 const AuthContext = createContext();
-
-const initialState = {
  
-    status: 'idle',
-    error: null,
-    currentUser: null,
-
+const initialState = {
+  status: "idle",
+  error: null,
+  currentUser: null,
 };
 
 function reducer(state, action) {
   switch (action.type) {
-
-      case "setLoading": 
+    case "setLoading":
       return {
-          ...state, 
-          status: 'loading'
-        }
-        case "getCurrentUser": 
-    
-            return {
-                ...state,
-                currentUser: action.payload
-            }
-        
+        ...state,
+        status: "loading",
+      };
+    case "getCurrentUser":
+      return {
+        ...state,
+        currentUser: action.payload,
+      };
 
-        case "setUser":
-            return {
-                ...state,
-                currentUser: action.payload,
-                status: 'ready'
-            }
-        case "setError": 
-    
-        return {
-            ...state,
-            error: action.payload
-        }
+    case "setUser":
+      return {
+        ...state,
+        currentUser: action.payload,
+        status: "ready",
+      };
+    case "setError":
+      return {
+        ...state,
+        error: action.payload,
+      };
 
     case "resetAuth":
-        return {
-            ...initialState
-        }
-
+      return {
+        ...initialState,
+      };
   }
 }
 
 function AuthProvider({ children }) {
-  
-    const [{status, error, currentUser}, dispatch] = useReducer(reducer, initialState)
-  
-    
-    useEffect(() => {
-        async function loadUser() {
-            dispatch({type: "setLoading"})
-            try {
-                const session = await getCurrentUser()
+  const [{ status, error, currentUser }, dispatch] = useReducer(
+    reducer,
+    initialState
+  );
 
-                if (!session) throw Error
+  useEffect(() => {
+    async function loadUser() {
+      dispatch({ type: "setLoading" });
+      try {
+        const session = await getCurrentUser();
 
-                const user = await getUserData(session?.user.id)
-                    
-                if (user) dispatch({type: "getCurrentUser", payload: user})
-                
-            } catch(error) {
-                dispatch({type: "setError", payload: error})
-            }
-        }
+        const user = await getUserData(session?.user.id);
 
-        loadUser()
-    }, [])
+        if (user) dispatch({ type: "getCurrentUser", payload: user });
+      } catch (error) {
+        dispatch({ type: "setError", payload: error });
+        throw error;
+      }
+    }
 
-    const signIn = useCallback(async (email, password) => {
+    loadUser();
+  }, []);
 
-        dispatch({type: "setLoading"})
-        try {
-            const { data, error } = await  signInWithEmail(email, password)
-        
+  const signIn = useCallback(async (email, password) => {
+    dispatch({ type: "setLoading" });
+    try {
+      const { data, error } = await signInWithEmail(email, password);
 
-            return data
-        } catch(error) {
+      return data;
+    } catch (error) {
+      dispatch({ type: "setError", payload: error });
+      console.error(error);
+    }
+  }, []);
 
-            dispatch({type: "setError", payload: error})
-            console.error(error)
-        }
-    
-    }, [])
+  const signUp = useCallback(async (email, password) => {
+    dispatch({ type: "setLoading" });
+    try {
+      const { data, error } = await signUpNewUser(email, password);
 
-    const signUp = useCallback(async (email, password ) => {
-        dispatch({type: "setLoading"});
-        try {
-            const {data, error} = await signUpNewUser(email, password);
+      if (error) throw new Error(error);
 
-            if (error) throw new Error(error)
+      console.log(data);
+      if (data) {
+        console.log(data);
+        const { data: userData, error: creationError } = await supabase
+          .from("users")
+          .insert([{ id: data.user.id }]);
 
-                console.log(data)
-            if (data) {
+        if (creationError)
+          console.error("Erro ao criar usuário", creationError);
 
-                console.log(data)
-                const {data: userData, error: creationError} = await supabase.from('users').insert([{id: data.user.id}])
+        dispatch({ type: "setUser", payload: userData });
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  });
 
-                if (creationError) console.error('Erro ao criar usuário', creationError)
-    
-                dispatch({type: "setUser", payload: userData})
-            } 
-        } catch(error) {
-            console.error(error)
-        }
-    })
+  const signOut = useCallback(async () => {
+    try {
+      await signOutUser();
 
-    const signOut = useCallback(async () => {
-        try {
-            await signOutUser()
-
-            dispatch({type: "logout"})
-        } catch(error) {
-            dispatch({type: 'setError', payload: error?.message})
-            console.error(error)
-        }
-    }, [])
+      dispatch({ type: "logout" });
+    } catch (error) {
+      dispatch({ type: "setError", payload: error?.message });
+      console.error(error);
+    }
+  }, []);
 
   return (
     <AuthContext.Provider
       value={{
         currentUser,
-        status, 
+        status,
         error,
         signUp,
         signIn,
         signOut,
-        dispatch
+        dispatch,
       }}>
       {children}
     </AuthContext.Provider>

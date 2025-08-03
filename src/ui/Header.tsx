@@ -3,16 +3,28 @@ import { useBuilder } from "../contexts/BuilderContext";
 import AutoSave from "./AutoSave";
 import Button from "./Button";
 import { useAuth } from "@/contexts/AuthContext";
-import { useLocation, useParams } from "react-router";
+import { useLocation, useNavigate, useParams } from "react-router";
 
 export default function Header() {
-  const { status: builderStatus, currentQuiz } = useBuilder();
-
+  const navigate = useNavigate();
   const { quizId } = useParams();
 
+  const { currentUser, status: authStatus, error } = useAuth();
+  const {
+    status: builderStatus,
+    draftStatus,
+    currentQuiz,
+    handleInsertQuiz,
+  } = useBuilder();
   const { status: quizStatus } = useQuizzes();
 
-  const { currentUser, status: authStatus, error } = useAuth();
+  async function handleSaveDraft() {
+    const data = await handleInsertQuiz(currentQuiz);
+
+    if (data) {
+      navigate("/quizzes");
+    }
+  }
 
   if (builderStatus === "ready")
     return (
@@ -24,7 +36,13 @@ export default function Header() {
             <li className="flex justify-center gap-2">
               {builderStatus === "ready" && <AutoSave />}
             </li>
-            <li>
+            <li className="flex items-center gap-1">
+              <Button
+                onClick={handleSaveDraft}
+                disabled={draftStatus === "Saving"}
+                styles="alternate">
+                Salvar como rascunho
+              </Button>
               <Button styles="standard" disabled={true} tooltip={"Em breve"}>
                 Publicar
               </Button>

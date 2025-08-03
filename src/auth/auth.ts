@@ -4,92 +4,72 @@ import supabase from "@/utils/supabase";
 
 
 export async function getCurrentUser() {
+  try {
+    const { data, error } = await supabase.auth.getUser();
 
-    try {
-        const { data, error } = await supabase.auth.getUser()
+    if (error) throw error;
 
-        if (error) throw Error(error.message)
-
-        return data
-
-    } catch(error) {
-     
-      console.error(error)
-      throw error
-
-    }
-
+    return data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
 }
 
-
 export async function getUserData(id) {
-    try {
+  try {
+    const { data, error } = await supabase
+      .from("users")
+      .select("*")
+      .eq("id", id)
+      .single();
 
-        const { data, error } = await supabase
-             .from("users")
-             .select("*")
-             .eq("id", id).single()
-        
+    if (error) throw error;
 
-           if (error) {
-             throw Error(error.message)
-           }
-        return data;
-      
-    } catch(error) { 
-        console.error(error)
-        throw error
-    
-    }
-    
+    return data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
 }
 
 export async function signUpNewUser(email, password) {
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: "https://localhost:5173",
+      },
+    });
 
-    try {
-
-        const { data, error } = await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-                emailRedirectTo: "https://localhost:5173",
-            },
-        });
-
-        if (error) throw Error(error.message)
-        return {
-            data,
-            error
-        }
-        
-    } catch(error) {
-        console.log(error)
-        throw error
-    }
-
-
- }
-
+    if (error) throw Error(error.message);
+    return {
+      data,
+      error,
+    };
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
 
 export async function signInWithEmail(email, password) {
-    try {
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-        const { data, error } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-        })
+    if (error) throw error;
 
-        if (error) throw Error(error.message)
+    console.log(data);
 
-        console.log(data)
-
-        return {
-            data,
-            error
-        }
-    } catch(error) {
-        console.error(error)
-    }
+    return data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
 }
 
 
