@@ -132,8 +132,6 @@ export default function DragAndDropWrapper({
                                 Nenhuma coleção encontrada
                                      </div>
 
-  if (isLoading) return <Loader />;
-
   return (
     <DndContext
       sensors={sensors}

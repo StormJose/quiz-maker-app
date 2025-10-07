@@ -2,17 +2,17 @@
 import { Outlet } from "react-router"
 import Sidebar from "./sidebar"
 import { useBuilder } from "@/contexts/BuilderContext"
-import Loader from "@/ui/Loader"
-
+import Spinner from "@/ui/Spinner";
+import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
+import Button from "@/ui/Button";
 
 export default function BuilderLayout() {
+  const { isLoading, currentQuiz } = useBuilder();
 
-    const { isLoading,  currentQuiz } = useBuilder()
+  const numQuestions = currentQuiz?.questions.length;
+  const totalPoints = numQuestions * 15;
+  const estimatedTime = numQuestions;
 
-
-    const numQuestions = currentQuiz?.questions.length 
-    const totalPoints = numQuestions * 15
-    const estimatedTime = numQuestions 
   return (
     <div
       className="border-[1.55px] border-secondary shadow-2xl shadow-secondary px-6 py-8 rounded-2xl self-center
@@ -27,22 +27,18 @@ export default function BuilderLayout() {
           </p>
         </div>
         <Sidebar />
-
-        {isLoading ? (
-          <Loader />
-        ) : (
-          <div className="flex flex-col space-y-3 mt-4">
-            <p>
-              N° de questões: <b> {numQuestions}</b>
-            </p>
-            <p>
-              Pontuação máxima: <b> {totalPoints}</b> 
-            </p>
-            <p>
-             Tempo estimado: <b> {estimatedTime}</b>
-            </p>
-          </div>
-        )}
+        <div
+          className={`flex flex-col space-y-2 ${isLoading && "opacity-45"} `}>
+          <p>
+            N° de questões: <b> {numQuestions}</b>
+          </p>
+          <p>
+            Pontuação máxima: <b> {totalPoints}</b>
+          </p>
+          <p>
+            Tempo estimado: <b> {estimatedTime}</b>
+          </p>
+        </div>
       </div>
       <div className="md:max-w-[505px] lg:max-w-[800px] pl-4">
         <Outlet />

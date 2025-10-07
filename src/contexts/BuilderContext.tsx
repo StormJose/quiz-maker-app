@@ -1,5 +1,13 @@
 import { createContext, useContext, useReducer } from "react";
-import { fetchQuiz, insertQuiz, updateQuiz } from "../api/supabaseApi.js";
+import {
+  deleteAnswer,
+  deleteQuestion,
+  fetchNumOfQuizzes,
+  fetchQuiz,
+  insertQuiz,
+  updateQuiz,
+  upsertQuizSettings,
+} from "../api/supabaseApi.js";
 
 const BuilderContext = createContext();
 
@@ -10,52 +18,61 @@ const initialState = {
   draftStatus: "Saving",
   hasRestored: false,
   lastSynced: null,
-  enableTimer: false,
-  shuffle: false,
-  customScore: false,
+  numQuizzes: null,
   currentQuiz: {
     id: null,
     title: "",
     description: "Seu novo quiz",
     questions: [
       {
-        id: new Date().getTime().toString(),
+        id: new Date().getTime(),
         description: "Essa é sua primeira pergunta",
         answers: [
           {
-            id: new Date().getTime().toString() + 1,
+            id: new Date().getTime() + 1,
             content: "Essa é sua primeira resposta 1",
             correct_answer: true,
+            order: 1,
           },
           {
-            id: new Date().getTime().toString() + 2,
+            id: new Date().getTime() + 2,
             content: "Resposta 2",
             correct_answer: false,
+            order: 2,
           },
           {
-            id: new Date().getTime().toString() + 3,
+            id: new Date().getTime() + 3,
             content: "Resposta 3",
             correct_answer: false,
+            order: 3,
           },
           {
-            id: new Date().getTime().toString() + 4,
+            id: new Date().getTime() + 4,
             content: "Resposta 4",
             correct_answer: false,
+            order: 4,
           },
         ],
         order: 1,
         type: "multiple_choice",
       },
     ],
+
+    settings: {
+      enableTimer: false,
+      shuffle: false,
+      customScore: false,
+    },
     published: false,
   },
   curQuestion: {},
   error: null,
+  persist: true,
 };
 
 function reducer(state, action) {
   switch (action.type) {
-    case "DataLoading":
+    case "dataLoading":
       return {
         ...state,
         isLoading: true,
@@ -67,11 +84,13 @@ function reducer(state, action) {
         status: "ready",
       };
     case "setNewQuiz": {
+      console.log(action.payload);
       return {
         ...state,
+        numQuizzes: action.payload,
         currentQuiz: {
           ...initialState.currentQuiz,
-          title: `Novo Quiz ${action.payload.length + 1}`,
+          title: `Novo Quiz ${action.payload + 1}`,
           id: new Date().getTime().toString(),
         },
         curQuestion: initialState.currentQuiz.questions[0],
@@ -83,6 +102,7 @@ function reducer(state, action) {
         ...state,
         currentQuiz: action.payload,
         curQuestion: action.payload?.questions[0],
+        status: "ready",
       };
 
     case "setCurQuestion":
@@ -111,7 +131,11 @@ function reducer(state, action) {
       const newQuestion = {
         id: newId,
         description: `Nova pergunta ${newOrder}`,
-        answers: initialState.currentQuiz.questions[0].answers,
+        answers: state.currentQuiz.questions[0].answers.map((a, index) => ({
+          ...a,
+          id: new Date().getTime() + index,
+          order: index + 1,
+        })),
         type: "multiple_choice",
         order: newOrder,
       };
@@ -122,6 +146,7 @@ function reducer(state, action) {
           ...state.currentQuiz,
           questions: [...state.currentQuiz?.questions, newQuestion],
         },
+        persist: true,
       };
     }
 
@@ -149,7 +174,7 @@ function reducer(state, action) {
             correct_answer: false,
           },
         ],
-        type: "true_or_false",
+        type: "true_false",
         order: newOrder,
       };
 
@@ -159,12 +184,43 @@ function reducer(state, action) {
           ...state.currentQuiz,
           questions: [...state?.currentQuiz.questions, newQuestion],
         },
+        persist: true,
+      };
+    }
+
+    case "cloneQuestion": {
+      const newId = state.currentQuiz.questions.length
+        ? Math.max(
+            ...state.currentQuiz.questions?.map((question) => question?.id)
+          ) + 1
+        : 1;
+
+      const newOrder = state.currentQuiz.questions.length + 1;
+      const clonedQuestion = {
+        ...state.curQuestion,
+        answers: state.curQuestion.answers.map((a, i) => ({
+          ...a,
+          id: Date.now() + i,
+        })),
+        id: newId,
+        order: newOrder,
+      };
+      console.log(clonedQuestion);
+
+      return {
+        ...state,
+        currentQuiz: {
+          ...state.currentQuiz,
+          questions: [...state?.currentQuiz.questions, clonedQuestion],
+        },
+        persist: true,
       };
     }
     case "updateQuestion": {
       const newQuestions = state.currentQuiz.questions.map((question) =>
         question.id === action.payload.id ? action.payload : question
       );
+
       return {
         ...state,
         currentQuiz: {
@@ -174,6 +230,7 @@ function reducer(state, action) {
         curQuestion: newQuestions.filter(
           (question) => question.id === action.payload.id
         )[0],
+        persist: true,
       };
     }
 
@@ -189,6 +246,30 @@ function reducer(state, action) {
           questions: updatedQuestions,
         },
         curQuestion: updatedQuestions[0],
+        persist: false,
+      };
+    }
+
+    case "deleteAnswer": {
+      const updatedQuestion = {
+        ...state.curQuestion,
+        answers: state.curQuestion.answers.filter(
+          (a) => a.id !== action.payload
+        ),
+      };
+
+      const updatedQuestions = state.currentQuiz.questions.filter(
+        (question) => question.id !== updatedQuestion
+      );
+
+      return {
+        ...state,
+        currentQuiz: {
+          ...state.currentQuiz,
+          questions: updatedQuestions,
+          curQuestion: updatedQuestions[0],
+        },
+        persist: false,
       };
     }
 
@@ -199,6 +280,7 @@ function reducer(state, action) {
           ...state.currentQuiz,
           questions: action.payload,
         },
+        persist: true,
       };
 
     case "reorderAnswers": {
@@ -218,6 +300,7 @@ function reducer(state, action) {
           ...state.curQuestion,
           answers: action.payload.newArray,
         },
+        persist: true,
       };
     }
 
@@ -240,6 +323,7 @@ function reducer(state, action) {
           questions: updatedQuestions,
         },
         curQuestion: updatedCurQuestion,
+        persist: true,
       };
     }
 
@@ -262,6 +346,7 @@ function reducer(state, action) {
       return {
         ...state,
         status: "ready",
+        isLoading: false,
         draftStatus: action.payload,
         lastSynced: new Date().toLocaleString(),
       };
@@ -269,19 +354,37 @@ function reducer(state, action) {
     case "setTimer":
       return {
         ...state,
-        enableTimer: state.enableTimer ? false : true,
+        currentQuiz: {
+          ...state.currentQuiz,
+          settings: {
+            ...state.currentQuiz.settings,
+            enableTimer: state.currentQuiz.settings.enableTimer ? false : true,
+          },
+        },
       };
 
-    case "setSuffle":
+    case "setShuffle":
       return {
         ...state,
-        shuffle: state.shuffle ? false : true,
+        currentQuiz: {
+          ...state.currentQuiz,
+          settings: {
+            ...state.currentQuiz.settings,
+            shuffle: state.currentQuiz.settings.shuffle ? false : true,
+          },
+        },
       };
 
     case "setCustomScore":
       return {
         ...state,
-        customScore: state.customScore ? false : true,
+        currentQuiz: {
+          ...state.currentQuiz,
+          settings: {
+            ...state.currentQuiz.settings,
+            customScore: state.currentQuiz.settings.customScore ? false : true,
+          },
+        },
       };
 
     case "setError":
@@ -305,26 +408,44 @@ function BuilderProvider({ children }) {
       status,
       draftStatus,
       lastSynced,
-      enableTimer,
-      shuffle,
-      customScore,
+      persist,
       currentQuiz,
       questions,
       curQuestion,
-      title,
     },
     dispatch,
   ] = useReducer(reducer, initialState);
 
   const toggleTimer = () => dispatch({ type: "setTimer" });
-  const toggleSuffle = () => dispatch({ type: "setShuffle" });
+  const toggleShuffle = () => dispatch({ type: "setShuffle" });
   const toggleCustomScore = () => dispatch({ type: "setCustomScore" });
 
+  async function handleNumOfQuizzes(filters) {
+    const numQuizzes = await fetchNumOfQuizzes(filters);
+
+    return numQuizzes;
+  }
+
+  async function handleNewQuiz() {
+    dispatch({ type: "dataLoading" });
+    try {
+      const numQuizzes = await handleNumOfQuizzes();
+
+      dispatch({ type: "setNewQuiz", payload: numQuizzes });
+    } catch (error) {
+      console.error(error);
+    } finally {
+      dispatch({ type: "dataLoaded" });
+    }
+  }
+
+  // quizzes
   async function handleGetQuiz(quizId) {
     dispatch({ type: "dataLoading" });
     try {
       const data = await fetchQuiz(quizId);
 
+      dispatch({ type: "setCurrentQuiz", payload: data });
       return data;
     } catch (error) {
       dispatch({ type: "setError", payload: error });
@@ -342,19 +463,56 @@ function BuilderProvider({ children }) {
     } catch (error) {
       dispatch({ type: "setError", payload: error });
       throw error;
+    } finally {
+      dispatch({ type: "dataLoaded" });
     }
   }
 
-  async function handleUpdateQuiz(quiz) {
+  async function handleUpsertQuizSettings(quiz) {
     dispatch({ type: "dataLoading" });
     try {
-      const result = await updateQuiz(quiz);
+      const data = await upsertQuizSettings(quiz);
 
-      console.log(result);
+      return data;
     } catch (error) {
+      dispatch({ type: "setError", payload: error });
       throw error;
     } finally {
-      // dispatch({type: "saveQuiz"})
+      dispatch({ type: "dataLoaded" });
+    }
+  }
+
+  // Questions
+  async function handleDeleteQuestion(questionId) {
+    dispatch({ type: "dataLoading" });
+    try {
+      const result = await deleteQuestion(questionId);
+
+      dispatch({
+        type: "deleteQuestion",
+        payload: questionId,
+      });
+      return result;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    } finally {
+      dispatch({ type: "dataLoaded" });
+    }
+  }
+
+  // Answers
+  async function handleDeleteAnswer(answerId) {
+    dispatch({ type: "dataLoading" });
+    try {
+      const result = await deleteAnswer(answerId);
+
+      if (result) dispatch({ type: "deleteAnswer", answerId });
+    } catch (error) {
+      console.error(error);
+      throw error;
+    } finally {
+      dispatch({ type: "dataLoaded" });
     }
   }
 
@@ -365,17 +523,19 @@ function BuilderProvider({ children }) {
         status,
         draftStatus,
         lastSynced,
-        enableTimer,
-        shuffle,
-        customScore,
+        persist,
         currentQuiz,
         questions,
         curQuestion,
-        title,
+        handleNumOfQuizzes,
+        handleNewQuiz,
         handleGetQuiz,
         handleInsertQuiz,
-        handleUpdateQuiz,
-        toggleSuffle,
+        handleUpsertQuizSettings,
+        // handleUpdateQuiz,
+        handleDeleteQuestion,
+        handleDeleteAnswer,
+        toggleShuffle,
         toggleTimer,
         toggleCustomScore,
         dispatch,

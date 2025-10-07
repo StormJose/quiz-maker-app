@@ -1,15 +1,24 @@
 import { Switch } from "@/components/ui/switch";
 import { useBuilder } from "@/contexts/BuilderContext";
+import { useUnsavedChanges } from "../../hooks/useUnsavedChanges.tsx";
+import Button from "@/ui/Button";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router";
 
 export default function QuizSettings() {
+  const { quizId } = useParams();
+
   const {
-    enableTimer,
-    shuffle,
-    customScore,
+    isLoading,
+    currentQuiz,
     toggleTimer,
     toggleShuffle,
     toggleCustomScore,
+    handleGetQuiz,
+    handleUpsertQuizSettings,
   } = useBuilder();
+
+  const { dirty, Dialog, handleUpdateSettings } = useUnsavedChanges();
 
   function handleTimer() {
     toggleTimer();
@@ -23,13 +32,36 @@ export default function QuizSettings() {
     toggleCustomScore();
   }
 
+  async function handleSaveChanges() {
+    await handleUpsertQuizSettings(currentQuiz);
+
+    handleUpdateSettings(currentQuiz?.settings);
+  }
+
+  useEffect(() => {
+    async function loadQuizData() {
+      try {
+        const data = await handleGetQuiz(quizId);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    loadQuizData();
+  }, []);
+
   return (
     <div className="grid gap-y-12">
+      {Dialog}
       <h3 className="text-xl font-bold">Execução</h3>
 
       <div className="grid gap-y-12 items-center">
         <div className="grid grid-cols-[0.2fr_2fr] items-center">
-          <Switch onClick={handleCustomScore} checked={customScore} />
+          <Switch
+            disabled={isLoading}
+            onClick={handleCustomScore}
+            checked={currentQuiz?.settings?.customScore}
+          />
           <div>
             <h4 className="font-bold text-md">Customizar pontuação</h4>
             <p className="text-accent-foreground">
@@ -38,9 +70,12 @@ export default function QuizSettings() {
             </p>
           </div>
         </div>
-
         <div className="grid grid-cols-[0.2fr_2fr] items-center">
-          <Switch onClick={handleTimer} checked={enableTimer} />
+          <Switch
+            disabled={isLoading}
+            onClick={handleTimer}
+            checked={currentQuiz?.settings?.enableTimer}
+          />
           <div>
             <h4 className="font-bold text-md">Cronômetro</h4>
             <p className="text-accent-foreground">
@@ -49,7 +84,7 @@ export default function QuizSettings() {
           </div>
         </div>
         <div className="grid grid-cols-[0.2fr_2fr] items-center">
-          <Switch />
+          <Switch disabled={isLoading} />
           <div>
             <h4 className="font-bold text-md">Respostas em Tempo Real</h4>
             <p className="text-accent-foreground">
@@ -58,7 +93,11 @@ export default function QuizSettings() {
           </div>
         </div>
         <div className="grid grid-cols-[0.2fr_2fr] items-center">
-          <Switch onClick={handleShuffle} checked={shuffle} />
+          <Switch
+            disabled={isLoading}
+            onClick={handleShuffle}
+            checked={currentQuiz?.settings?.shuffle}
+          />
           <div>
             <h4 className="font-bold text-md">Ordem aleatória</h4>
             <p className="text-accent-foreground">
@@ -66,6 +105,14 @@ export default function QuizSettings() {
             </p>
           </div>
         </div>
+
+        <Button
+          disabled={!dirty}
+          styles={"standard"}
+          additionalStyles={"justify-self-start"}
+          onClick={handleSaveChanges}>
+          Salvar definições
+        </Button>
       </div>
     </div>
   );

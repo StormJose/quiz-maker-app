@@ -7,18 +7,15 @@ import Loader from "../../ui/Loader";
 export default function Question() {
   
   
-  const {
-    curQuestion,
-    currentQuiz,
-    dispatch: builderDispatch,
-    customScore,
-  } = useBuilder();
+  const { curQuestion, currentQuiz, dispatch: builderDispatch } = useBuilder();
   const [description, setDescription] = useState(curQuestion.description);
 
   // if (!currentQuiz.questions.length) return <p>Erro ao carregar a pergunta :/</p>;
 
+  const { settings } = currentQuiz;
+
   useEffect(() => {
-    setDescription(curQuestion.description);
+    setDescription(curQuestion?.description);
   }, [curQuestion]);
 
   async function handleChangeDescription(e: string) {
@@ -47,11 +44,15 @@ export default function Question() {
         onBlur={handleConfirmDescription}
         value={description}></textarea>
 
-      {customScore && (
-        <div className="my-4">
-          <label className="flex gap-2">
-            Pontos
-            <input className="border-[1.88px] rounded-lg border-gray-300 self-start" />
+      {settings?.customScore && (
+        <div className="my-4 flex items-center">
+          <label className="flex gap-2 ">
+            <p className="mt-1"> Pontos</p>
+            <input
+              name="points"
+              maxLength={2}
+              className=" pl-2 w-10 h-8 border-[1.88px] rounded-lg border-gray-300 "
+            />
           </label>
         </div>
       )}

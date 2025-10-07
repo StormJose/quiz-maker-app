@@ -9,8 +9,15 @@ export default function QuizItem({ quiz }) {
 
   return (
     <div className="flex justify-between items-center px-6 py-4 bg-gray-200 rounded-md hover:bg-grey group">
-      <Button to={`/quizzes/${quiz.id}`}>{quiz.title}</Button>
+      <div>
+        <Button to={`/quizzes/${quiz.id}`}>{quiz.title}</Button>
 
+        {!quiz.published && (
+          <span className="bg-amber-500 text-foreground px-4 py-1.5 rounded-2xl font-bold">
+            Rascunho
+          </span>
+        )}
+      </div>
       <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
         <Button
           tooltip="Edit Quiz"

@@ -1,17 +1,18 @@
 import { useNavigate } from "react-router";
 import { useQuizzes } from "../../contexts/QuizzesContext";
 import Button from "../../ui/Button";
+import { useEffect, useState } from "react";
 
 export default function QuizNav() {
   const { currentQuiz, curQuestion, selectedAnswers } = useQuizzes();
-
-  console.log(currentQuiz, curQuestion);
 
   const navigate = useNavigate();
 
   const curQuestionIndex = currentQuiz?.questions
     ?.map((_, i, arr) => (arr.at(i) === curQuestion ? i : ""))
     .join("");
+
+  console.log(curQuestion, curQuestionIndex);
 
   function handleGoToQuestion(index) {
     navigate(`/quizzes/${currentQuiz?.id}/questions/${index}`);

@@ -13,17 +13,21 @@ export default function Answers() {
   const maxAnswers = curQuestion.answers?.length === 4;
 
   async function handleAddAnswer() {
+
+    const order = curQuestion.answers.length + 1;
+
     const newAnswer = {
-      id: Date.now(),
-      content: `Nova resposta ${curQuestion.answers.length + 1}`,
-      correctAnswer: false,
+      id: new Date().getTime().toString(),
+      content: "Nova resposta",
+      correct_answer: false,
+      order,
     };
 
     const updatedQuestion = {
       ...curQuestion,
       answers: [...curQuestion.answers, newAnswer],
     };
-    console.log(updatedQuestion);
+
     await dispatch({ type: "updateQuestion", payload: updatedQuestion });
   }
 

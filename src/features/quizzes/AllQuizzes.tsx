@@ -5,20 +5,24 @@ import { useQuizzes } from "../../contexts/QuizzesContext";
 import QuizItem from "./QuizItem";
 import Button from "../../ui/Button";
 import Loader from "../../ui/Loader";
+import { Plus } from "lucide-react";
 
 export default function AllQuizzes() {
   const navigate = useNavigate();
 
   const { currentUser } = useAuth();
-  const { getUserQuizzes, quizzes, status, error } = useQuizzes();
+  const { handleGetUserQuizzes, quizzes, status, error } = useQuizzes();
 
   useEffect(() => {
     async function loadQuizzes() {
-      if (currentUser?.id) await getUserQuizzes(currentUser.id);
+      if (currentUser?.id) await handleGetUserQuizzes(currentUser.id);
     }
 
     loadQuizzes();
   }, [currentUser]);
+
+  // Load newly created quizzes if they don't appear
+  useEffect(() => {});
 
   if (status === "loading") return <Loader />;
 
@@ -28,6 +32,11 @@ export default function AllQuizzes() {
         <h2 className="text-3xl font-bold">Quizzes</h2>
       </div>
 
+      <header className="py-4 flex justify-end">
+        <Button to="/quiz/new" styles={"standard"} additionalStyles={"py-2"}>
+          <Plus />
+        </Button>
+      </header>
       {quizzes.length === 0 && status !== "loading" && (
         <div className="flex flex-col gap-5 items-start">
           <h3>Nenhum quiz disponível. Que tal criar o seu próprio?</h3>

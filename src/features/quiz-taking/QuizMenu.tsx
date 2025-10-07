@@ -21,6 +21,7 @@ export default function QuizMenu() {
 
     function handleLeaveQuiz () {
 
+      dispatch({ type: "resetQuiz" });
       navigate(`/quizzes/${currentQuiz.id}`)
   
 

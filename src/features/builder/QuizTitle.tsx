@@ -6,7 +6,6 @@ export default function QuizTitle({onHandleTitle}) {
 
   const { isLoading, currentQuiz } = useBuilder();
 
-  if (isLoading) return <Loader/>
 
   return (
     <div className="self-start flex gap-1.5 relative">

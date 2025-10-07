@@ -6,28 +6,26 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 // TO DO: Apply drag n' drop functionality to the answers
 export default function Input({ item, active, listeners }) {
-  const [input, setInput] = useState(item.content);
+  const [input, setInput] = useState(item.content ?? "");
   const [isChanged, setIsChanged] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
 
-  const { curQuestion, dispatch } = useBuilder();
+  const { curQuestion, handleDeleteAnswer, dispatch } = useBuilder();
 
   // For now, it is not possible to undo the changes after the input loses focus because
   // the component wouldn't be able to save the changes.
   useEffect(() => {
-    setIsChanged(input !== item.text);
+    setIsChanged(input !== item.content);
 
-    if (!isChanged && !isFocused) setInput(item.text);
-  }, [input, item.text, isChanged, isFocused]);
+    if (!isChanged && !isFocused) setInput(item.content);
+  }, [input, item.content, isChanged, isFocused]);
 
   function handleFocus() {
     setIsFocused(true);
-    console.log(isFocused);
   }
 
   function handleBlur() {
     setIsFocused(false);
-    console.log(isFocused);
   }
 
   function handleChangeAnswer(e) {
@@ -38,7 +36,7 @@ export default function Input({ item, active, listeners }) {
     if (!isChanged) return;
 
     const updatedAnswers = curQuestion.answers.map((answer) =>
-      answer.id === id ? { ...answer, text: input } : answer
+      answer.id === id ? { ...answer, content: input } : answer
     );
 
     const updatedQuestion = {
@@ -49,13 +47,9 @@ export default function Input({ item, active, listeners }) {
     dispatch({ type: "updateQuestion", payload: updatedQuestion });
   }
 
-  function handleDeleteAnswer(id: integer) {
-    const newQuestion = {
-      ...curQuestion,
-      answers: curQuestion.answers.filter((answer) => answer.id !== id),
-    };
-
-    dispatch({ type: "updateQuestion", payload: newQuestion });
+  async function deleteAnswer(id: integer) {
+    console.log(id);
+    await handleDeleteAnswer(id);
   }
 
   function handleCorrectAnswer(answer) {
@@ -74,7 +68,7 @@ export default function Input({ item, active, listeners }) {
     dispatch({ type: "setCorrectAnswer", payload });
   }
 
-  if (curQuestion?.type === "trueOrFalse")
+  if (curQuestion?.type === "true_false")
     return (
       <div>
         <input value={input} disabled />
@@ -125,7 +119,7 @@ export default function Input({ item, active, listeners }) {
           checked={item.correct_answer}
           onClick={() => handleCorrectAnswer(item)}
         />
-        <ButtonDelete onClick={() => handleDeleteAnswer(item.id)} />
+        <ButtonDelete onClick={() => deleteAnswer(item.id)} />
       </div>
     </li>
   );

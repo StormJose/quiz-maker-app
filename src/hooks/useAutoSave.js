@@ -10,20 +10,10 @@ export function useAutoSaveQuiz(quizId = null, quizData, onRestore, status) {
   const lastSyncedRef = useRef(null);
   const hasSyncedRef = useRef(false);
 
-  const {
-    draftStatus,
-    lastSynced,
-    handleInsertQuiz,
-    handleUpdateQuiz,
-    dispatch,
-  } = useBuilder();
+  const { draftStatus, lastSynced, persist, handleInsertQuiz, dispatch } =
+    useBuilder();
 
-  if (!quizId) quizId = `${new Date().getTime().toString()}`;
-
-  const quizKey = `quiz_draft_${quizId}`;
-
-  // const isTemporary = quizKey.includes("tempo");
-
+  const quizKey = `quiz_draft_${quizData?.id}`;
   const savedDraft = localStorage.getItem(quizKey);
 
   useEffect(() => {
@@ -53,8 +43,6 @@ export function useAutoSaveQuiz(quizId = null, quizData, onRestore, status) {
       try {
         const newDraftString = JSON.stringify(quizData);
         localStorage.setItem(quizKey, newDraftString);
-
-        // await handleInsertQuiz(quizData);
       } catch (error) {
         throw error;
       }
@@ -78,15 +66,15 @@ export function useAutoSaveQuiz(quizId = null, quizData, onRestore, status) {
 
     const timeout = setTimeout(async () => {
       try {
-        if (!draft.id) return;
-
-        await handleUpdateQuiz(draft);
-        lastSyncedRef.current = JSON.stringify(draft);
-
-        dispatch({ type: "saveDraft", payload: "Saved" });
+        if (draft.id && persist) {
+          await handleInsertQuiz(draft);
+          lastSyncedRef.current = JSON.stringify(draft);
+        }
       } catch (error) {
         console.error("Erro ao salvar draft remotamente:", error);
         dispatch({ type: "saveDraft", payload: "Offline" });
+      } finally {
+        dispatch({ type: "saveDraft", payload: "Saved" });
       }
     }, 1000);
 

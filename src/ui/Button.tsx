@@ -6,10 +6,9 @@ export default function Button({children, to, onClick, styles, type, isLoading, 
 
     const standard = `bg-main text-gray-100 hover:bg-indigo-400 hover:no-underline rounded-md`;
     const alternate = `bg-neutral-100 text-gray-900  hover:bg-neutral-200 rounded-md`;
-  
     const cancel = `bg-red-300 text-red-600  hover:bg-red-200 rounded-md`;
 
-    // Tweaks needed for the tooltip feature to work out. 
+    // Tweaks needed for the tooltip feature to work out.
     // Remember to study this process later you lazy ass mf.
 
     const content = (
@@ -89,7 +88,7 @@ export default function Button({children, to, onClick, styles, type, isLoading, 
             : ""
         }
       ${additionalStyles}
-      ${disabled ? "opacity-50 cursor-auto" : ""}
+      ${disabled ? "opacity-50 cursor-none" : ""}
        group/button
       `}
         disabled={disabled}>

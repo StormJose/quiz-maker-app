@@ -7,13 +7,14 @@ import QuizResults from "./features/quizzes/QuizResults";
 import InQuiz, {
   loader as questionsLoader,
 } from "./features/quiz-taking/InQuiz";
-import ErrorElement from "./ui/ErrorElement";
+import Register from "./features/users/Register";
+import Login from "./features/users/login";
 import Builder from "./features/builder/Builder";
 import BuilderLayout from "./layouts/builder-layout";
 import QuizSettings from "./features/settings/quiz-settings";
-import Register from "./features/users/Register";
-import Login from "./features/users/login";
 import Settings from "./features/users/settings";
+import ErrorBoundary from "./ui/error-boundary";
+
 
 const routes = [
   {
@@ -25,12 +26,13 @@ const routes = [
     path: "/quizzes",
     name: "Quizzes",
     element: <AllQuizzes />,
+    ErrorElement: <ErrorBoundary />,
   },
   {
     path: "/quizzes/:quizId",
     name: "Quiz",
     element: <Quiz />,
-    ErrorElement: <ErrorElement />,
+    ErrorElement: <ErrorBoundary />,
     loader: quizLoader,
   },
 
@@ -38,32 +40,32 @@ const routes = [
     path: "/quizzes/:quizId/questions/:questionId",
     name: "Questions",
     element: <InQuiz />,
-    errorElement: <ErrorElement />,
+    errorElement: <ErrorBoundary />,
     loader: questionsLoader,
   },
   {
     path: "/quiz/new",
     name: "New Quiz",
     element: <BuilderLayout />,
-    errorElement: <ErrorElement />,
+    errorElement: <ErrorBoundary />,
     children: [
       {
         path: "/",
         name: "New Quiz - Builder",
         element: <Builder />,
-        ErrorElement: <ErrorElement />,
+        ErrorElement: <ErrorBoundary />,
       },
       {
         path: "settings",
         name: "New Quiz - Settings",
         element: <QuizSettings />,
-        ErrorElement: <ErrorElement />,
+        ErrorElement: <ErrorBoundary />,
       },
       {
         path: "preview",
         name: "New Quiz - Builder",
         element: <Builder />,
-        ErrorElement: <ErrorElement />,
+        ErrorElement: <ErrorBoundary />,
       },
     ],
   },
@@ -71,25 +73,25 @@ const routes = [
     path: "/quiz/:quizId/edit",
     name: "Edit Quiz",
     element: <BuilderLayout />,
-    errorElement: <ErrorElement />,
+    errorElement: <ErrorBoundary />,
     children: [
       {
         path: "/",
         name: "New Quiz - Builder",
         element: <Builder />,
-        ErrorElement: <ErrorElement />,
+        ErrorElement: <ErrorBoundary />,
       },
       {
         path: "settings",
         name: "New Quiz - Settings",
         element: <QuizSettings />,
-        ErrorElement: <ErrorElement />,
+        ErrorElement: <ErrorBoundary />,
       },
       {
         path: "preview",
         name: "New Quiz - Builder",
         element: <Builder />,
-        ErrorElement: <ErrorElement />,
+        ErrorElement: <ErrorBoundary />,
       },
     ],
   },

@@ -1,17 +1,24 @@
 
 import { Button } from "@/components/ui/button";
 import { useBuilder } from "@/contexts/BuilderContext";
+import { feedback } from "@/utils/toast-utils";
 import { Copy, SmilePlus, SquaresSubtract, Trash } from "lucide-react";
+import toast from "react-hot-toast";
 import { useNavigate } from "react-router";
-
 
 export default function Toolbox() {
   const navigate = useNavigate();
 
-  const { dispatch: builderDispatch, currentQuiz, curQuestion } = useBuilder();
+  const {
+    isLoading,
+    dispatch: builderDispatch,
+    handleDeleteQuestion,
+    currentQuiz,
+    curQuestion,
+  } = useBuilder();
   const questions = currentQuiz?.questions ?? [];
 
-  function handleAddQuestion() {
+  async function handleAddQuestion() {
     builderDispatch({ type: "addQuestion" });
   }
 
@@ -20,22 +27,19 @@ export default function Toolbox() {
   }
 
   function cloneQuestion() {
-    const newId = questions.length
-      ? Math.max(...questions?.map((question) => question?.id)) + 1
-      : 1;
-
-    const clonedQuestion = {
-      ...curQuestion,
-      id: newId + 1,
-      type: "trueOrFalse",
-    };
-
-    builderDispatch({ type: "addQuestion", payload: clonedQuestion });
+    builderDispatch({ type: "cloneQuestion" });
   }
 
-  async function handleDeleteQuestion() {
-    await builderDispatch({ type: "deleteQuestion", payload: curQuestion.id });
-    console.log(curQuestion);
+  // Refactor logic later
+
+  async function deleteQuestion() {
+    try {
+      const result = await handleDeleteQuestion(curQuestion.id);
+
+      toast.success("Pergunta excluída");
+    } catch (error) {
+      feedback.error("Erro ao excluir pergunta");
+    }
   }
 
   const tools = [
@@ -68,7 +72,7 @@ export default function Toolbox() {
       icon: <Trash />,
       hideTitle: true,
       color: "text-red-500",
-      handler: handleDeleteQuestion,
+      handler: deleteQuestion,
     },
   ];
 
@@ -84,8 +88,9 @@ export default function Toolbox() {
                 title={tool.title}
                 variant={"secondary"}
                 disabled={
+                  (tool.type === "deleteQuestion" && isLoading) ||
                   (tool.type === "deleteQuestion" &&
-                    currentQuiz.questions.length === 1) ||
+                    currentQuiz?.questions.length === 1) ||
                   curQuestion === null
                 }
                 size={"sm"}

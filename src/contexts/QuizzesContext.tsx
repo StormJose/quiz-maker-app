@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useReducer } from "react";
 import { fetchQuizzes, deleteQuiz } from "../api/supabaseApi.js";
+import { r } from "node_modules/react-router/dist/development/fog-of-war-Da8gpnoZ.mjs";
 
 const QuizzesContext = createContext();
 
@@ -16,6 +17,9 @@ const initialState = {
   numCorrectAnswers: null,
   confirmHandler: null,
   confirmData: null,
+  showDialog: false,
+  dialogLabel: null,
+  dialogMessage: null,
 };
 
 function reducer(state, action) {
@@ -30,14 +34,36 @@ function reducer(state, action) {
       return {
         ...state,
         quizzes: action.payload,
-        status: "idle",
+        status: "ready",
       };
-    case "setCurrentQuiz":
+    case "setDialogOpen":
+      return {
+        ...state,
+        showDialog: true,
+        confirmHandler: action.payload?.handler,
+        dialogMessage: action.payload?.dialogMessage,
+        dialogLabel: action.payload?.dialogLabel,
+      };
+    case "setDialogClose":
+      return {
+        ...state,
+        showDialog: false,
+        confirmHandler: null,
+      };
+
+    case "confirmAction":
       console.log(action.payload);
       return {
         ...state,
+        confirmHandler: action.payload?.handler,
+        confirmData: action.payload?.quizId,
+      };
+
+    case "setCurrentQuiz":
+      return {
+        ...state,
         currentQuiz: action.payload,
-        curQuestion: action.payload.questions[0],
+        curQuestion: action.payload?.questions[0],
       };
 
     case "startQuiz":
@@ -96,10 +122,8 @@ function reducer(state, action) {
     case "deleteQuiz":
       return {
         ...state,
-        quizzes: state.quizzes.filter(
-          (quiz) => quiz.id != action.payload.quizId
-        ),
-        status: "idle",
+        quizzes: state.quizzes.filter((quiz) => quiz.id != action.payload),
+        status: "ready",
       };
 
     case "resetQuiz":
@@ -113,14 +137,7 @@ function reducer(state, action) {
         error: action.payload,
       };
 
-    case "confirmAction":
-      return {
-        ...state,
-        confirmHandler: action.payload?.handler,
-        confirmData: action.payload?.quizId,
-      };
-
-    case "cancelAction":
+    case "resetAction":
       return {
         ...state,
         confirmData: null,
@@ -152,11 +169,14 @@ function QuizzesProvider({ children }) {
       totalScore,
       numCorrectAnswers,
       confirmHandler,
+      showDialog,
+      dialogLabel,
+      dialogMessage,
     },
     dispatch,
   ] = useReducer(reducer, initialState);
 
-  async function getUserQuizzes(userId) {
+  async function handleGetUserQuizzes(userId) {
     dispatch({ type: "dataLoading" });
     try {
       if (userId === null) return;
@@ -173,10 +193,12 @@ function QuizzesProvider({ children }) {
   }
 
   async function handleDeleteQuiz(quizId) {
+    console.log(quizId);
     try {
       const res = await deleteQuiz(quizId);
 
       dispatch({ type: "deleteQuiz", payload: quizId });
+      console.log(res);
       return res;
     } catch (error) {
       console.error(error);
@@ -192,7 +214,7 @@ function QuizzesProvider({ children }) {
         error,
         timer,
         quizzes,
-        getUserQuizzes,
+        handleGetUserQuizzes,
         currentQuiz,
         curQuestion,
         confirmData,
@@ -201,6 +223,9 @@ function QuizzesProvider({ children }) {
         numCorrectAnswers,
         confirmHandler,
         handleDeleteQuiz,
+        showDialog,
+        dialogLabel,
+        dialogMessage,
         dispatch,
       }}>
       {children}

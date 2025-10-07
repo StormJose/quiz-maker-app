@@ -8,15 +8,13 @@ import QuizMenu from "./QuizMenu.js";
 
 export default function InQuiz() {
   const navigate = useNavigate();
+  const { result: quiz, questionIndex } = useLoaderData();
   const { dispatch, currentQuiz, selectedAnswers, totalScore } = useQuizzes();
-  const { data: quiz, questionIndex } = useLoaderData();
-
-  // const quiz = {}
-  // const questionIndex = 0
 
   const questions = quiz?.questions ?? {};
-  const curQuestion = questions[questionIndex];
+  const curQuestion = quiz && questions[questionIndex];
 
+  console.log(quiz, questions, curQuestion);
   const selectedAnswer = selectedAnswers.find(
     (answer) => answer.questionId === curQuestion.id
   );
@@ -24,7 +22,7 @@ export default function InQuiz() {
   const isFirst = questionIndex === 0;
   const isLast = questionIndex === questions.length - 1;
 
-  const allAnswersChecked = selectedAnswers.length === quiz.questions?.length;
+  const allAnswersChecked = selectedAnswers.length === quiz?.questions.length;
   const IsTryOut = location.pathname
     .split("/")
     .filter((segment) => segment === "tryout")[0];
@@ -32,7 +30,7 @@ export default function InQuiz() {
   useEffect(() => {
     dispatch({ type: "setCurrentQuiz", payload: quiz });
     dispatch({ type: "setCurQuestion", payload: curQuestion });
-  }, [quiz, curQuestion]);
+  }, [dispatch, quiz, curQuestion]);
 
   function handleNextQuestion() {
     if (!isLast) navigate(`/quizzes/${quiz.id}/questions/${questionIndex + 1}`);
@@ -77,7 +75,7 @@ export default function InQuiz() {
   if (currentQuiz === null) return;
 
   return (
-    <div className=" relative bg-main-500 max-w-full">
+    <div className=" relative bg-main-500 px-48 max-w-full">
       <div className="self-end">
         {IsTryOut && (
           <Button
@@ -117,12 +115,12 @@ export default function InQuiz() {
               } cursor-pointer px-4 py-5 border-[1px] border-gray-300 rounded-xl text-start`}
               key={answer.id}
               onClick={() => handleSelectAnswer(answer)}>
-              {answer.text}
+              {answer.content}
             </li>
           ))}
         </ul>
       </div>
-      <footer className="flex justify-between px-4 py-8 fixed w-full border-t-[1.55px] border-grey bottom-0 rounded-xl">
+      <footer className="flex justify-between px-4 py-8 mt-12 w-full border-t-[1.55px] border-grey bottom-0 rounded-xl">
         <Button
           styles={"alternate"}
           additionalStyles={isFirst ? "pointer-events-none opacity-50" : ""}
@@ -155,22 +153,16 @@ export default function InQuiz() {
 
 export async function loader({ params }) {
   const { quizId, questionId } = params;
+  const result = await fetchQuiz(quizId);
 
-  const { data, error } = await fetchQuiz(quizId);
-
-  if (error) throw new Response("Erro ao carregar o quiz", { status: 404 });
-
-  console.log(data);
-
+  if (!result) throw new Response("Erro ao carregar o quiz", { status: 404 });
   const index = Number(questionId);
-  const questions = data?.questions;
-
+  const questions = await result?.questions;
   if (!questions || isNaN(index) || index < 0 || index >= questions.length) {
     throw new Response("Questão não encontrada", { status: 404 });
   }
-
   return {
-    data,
+    result,
     questionIndex: index,
   };
 }

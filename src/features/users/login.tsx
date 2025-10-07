@@ -22,7 +22,7 @@ export default function Login() {
     })
 
     useEffect(() => {
-      console.log(error)
+
       if (currentUser) navigate('/')
 
     }, [currentUser])
@@ -50,7 +50,7 @@ export default function Login() {
             try {
              const user = await signIn(form.email, form.password);
 
-             if (user) navigate("/");
+             if (user.id) navigate("/");
              
             } catch(error) {
                 console.error(error)

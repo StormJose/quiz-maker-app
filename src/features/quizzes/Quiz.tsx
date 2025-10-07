@@ -1,13 +1,12 @@
 import { useEffect } from "react";
-import { fetchQuiz } from "../../api/supabaseApi.js";
 import { useQuizzes } from "../../contexts/QuizzesContext.js";
 import Button from "../../ui/Button";
-import { useLoaderData } from "react-router";
+import { useLoaderData, useSearchParams } from "react-router";
+import { fetchQuiz } from "@/api/supabaseApi.js";
 
 export default function Quiz() {
-  const { dispatch } = useQuizzes();
-
-  const { data } = useLoaderData();
+  const data = useLoaderData();
+  const { status, currentQuiz, dispatch } = useQuizzes();
 
   useEffect(() => {
     function loadCurrentQuiz() {
@@ -17,14 +16,11 @@ export default function Quiz() {
     loadCurrentQuiz();
   }, [data, dispatch]);
 
-  if (Object.entries(data).length === 0)
-    return <div>Nenhum quiz encontrado</div>;
-
   return (
     <div className="flex justify-between px-4 py-10">
       <div className="flex flex-col gap-1.5">
-        <h3 className="font-bold">{data?.title}</h3>
-        <p className="text-sm">{data?.description}</p>
+        <h3 className="font-bold">{currentQuiz?.title}</h3>
+        <p className="text-sm">{currentQuiz?.description}</p>
       </div>
       <div>
         <Button
@@ -38,10 +34,10 @@ export default function Quiz() {
   );
 }
 
-export function loader({ params }) {
+export async function loader({ params }) {
   const { quizId } = params;
 
-  const data = fetchQuiz(quizId);
+  const data = await fetchQuiz(quizId);
 
   return data;
 }
