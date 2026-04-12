@@ -1,56 +1,76 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router";
-import { useAuth } from "@/contexts/AuthContext";
+import {
+  redirect,
+  useLoaderData,
+  useNavigate,
+  useNavigation,
+} from "react-router";
 import { useQuizzes } from "../../contexts/QuizzesContext";
+import { motion } from "framer-motion";
 import QuizItem from "./QuizItem";
 import Button from "../../ui/Button";
-import Loader from "../../ui/Loader";
 import { Plus } from "lucide-react";
+import { Heading } from "@/ui/Heading";
+import { fetchQuizzes } from "@/api/supabaseApi";
+import { getCurrentUser } from "@/auth/auth";
 
 export default function AllQuizzes() {
   const navigate = useNavigate();
 
-  const { currentUser } = useAuth();
-  const { handleGetUserQuizzes, quizzes, status, error } = useQuizzes();
+  const quizzes = useLoaderData();
+
+  const { dispatch } = useQuizzes();
 
   useEffect(() => {
-    async function loadQuizzes() {
-      if (currentUser?.id) await handleGetUserQuizzes(currentUser.id);
-    }
-
-    loadQuizzes();
-  }, [currentUser]);
-
-  // Load newly created quizzes if they don't appear
-  useEffect(() => {});
-
-  if (status === "loading") return <Loader />;
+    dispatch({ type: "setDataLoaded", payload: quizzes });
+  }, [quizzes]);
 
   return (
-    <div className="flex flex-col px-4 mx-8">
+    <div className={`flex flex-col px-2 mx-8`}>
       <div className="mb-8">
-        <h2 className="text-3xl font-bold">Quizzes</h2>
+        <Heading>Quizzes</Heading>
       </div>
 
-      <header className="py-4 flex justify-end">
-        <Button to="/quiz/new" styles={"standard"} additionalStyles={"py-2"}>
-          <Plus />
-        </Button>
+      <header className="py-3 flex justify-end sticky top-4 z-40 bg-white rounded-md">
+        {quizzes.length > 0 && (
+          <Button to="/quiz/new" styles={"standard"} additionalStyles={"p-2"}>
+            <Plus />
+          </Button>
+        )}
       </header>
-      {quizzes.length === 0 && status !== "loading" && (
+      {quizzes.length === 0 && (
         <div className="flex flex-col gap-5 items-start">
           <h3>Nenhum quiz disponível. Que tal criar o seu próprio?</h3>
-          <Button styles={"standard"} onClick={() => navigate("/quiz/new")}>
+          <Button
+            styles={"standard"}
+            onClick={() => navigate("/quiz/new")}
+            additionalStyles={"px-4 py-1.5"}>
             Criar quiz
           </Button>
         </div>
       )}
 
-      <ul className="flex flex-col gap-2">
-        {quizzes?.map((quiz: object) => (
-          <QuizItem key={quiz.id} quiz={quiz} />
+      <div className="grid md:grid-flow-col sm:grid-cols-2  md:grid-cols-3 sm:gap-x-3 gap-y-4 gap-x-3">
+        {quizzes?.map((quiz) => (
+          <motion.div
+            key={quiz.quizId}
+            layoutId={`item-${quiz.quizId}`}
+            className="grid grid-flow-col  border-[1.55px] border-grey-tint bg-gray rounded-2xl">
+            <QuizItem key={quiz.quizId} quiz={quiz} />
+          </motion.div>
         ))}
-      </ul>
+      </div>
     </div>
   );
+}
+
+export async function loader() {
+  const session = await getCurrentUser();
+  if (!session) {
+    redirect("/notFound");
+  }
+
+  const quizzes = (await fetchQuizzes(session?.user.id)) ?? [];
+
+  return quizzes;
 }

@@ -1,98 +1,149 @@
+import { motion, AnimatePresence } from "framer-motion";
 import { Loader2Icon } from "lucide-react";
-import { Link } from "react-router"
+import { useState } from "react";
+import { Link } from "react-router";
 
+type Styles = "standard" | "alternate" | "cancel";
 
-export default function Button({children, to, onClick, styles, type, isLoading, disabled, additionalStyles, tooltip,  tooltipPosition, listeners}) {
+export default function Button({
+  children,
+  to,
+  onClick,
+  styles,
+  type,
+  isLoading,
+  disabled,
+  additionalStyles,
+  tooltip,
+  tooltipPosition,
+  listeners,
+}) {
+  const [ripples, setRipples] = useState([]);
 
-    const standard = `bg-main text-gray-100 hover:bg-indigo-400 hover:no-underline rounded-md`;
-    const alternate = `bg-neutral-100 text-gray-900  hover:bg-neutral-200 rounded-md`;
-    const cancel = `bg-red-300 text-red-600  hover:bg-red-200 rounded-md`;
+  const standard = `bg-main text-gray-100 hover:bg-indigo-400 hover:no-underline`;
+  const alternate = `bg-gray text-gray-950  hover:bg-neutral-200 `;
+  const cancel = `bg-red-300 text-red-600  hover:bg-red-200 `;
 
-    // Tweaks needed for the tooltip feature to work out.
-    // Remember to study this process later you lazy ass mf.
+  const typeStyles = {
+    standard,
+    alternate,
+    cancel,
+  };
 
-    const content = (
-      <div className="relative flex items-center gap-2">
-        {children}
-        {tooltip && (
-          <span
-            className={`${
-              tooltipPosition === "top" || tooltipPosition === undefined
-                ? "translate-y-[-60px] translate-x-[-50%] left-[50%]"
-                : "translate-y-[-100%] translate-x-[-50px] left-[-100px] "
-            }
-              pointer-events-none         
-              opacity-0 group-hover/button:opacity-100  
-              absolute top-ful 
-              mt-2 
-            bg-gray-50 text-gray-950 
-              font-semibold 
-              text-sm p-2.5 
-              rounded-xl 
-              transition-all 
-              whitespace-nowrap`}>
-            {tooltip}
-          </span>
-        )}
-      </div>
-    );
+  const currentTypeStyle = typeStyles[styles] || "";
 
-    if (to)
-      return (
-        <Link
-          {...listeners}
-          onClick={onClick}
-          to={to}
-          className={` ${
-            styles === "standard"
-              ? standard
-              : styles === "alternate"
-              ? alternate
+  function handleClick(e) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    const x = e.clientX - rect.left - size / 2;
+    const y = e.clientY - rect.top - size / 2;
+
+    const newRipple = {
+      id: Date.now(),
+      x,
+      y,
+      size,
+    };
+
+    setRipples((prev) => {
+      const updated = [...prev, newRipple];
+      return updated;
+    });
+  }
+  // Tweaks needed for the tooltip feature to work out.
+  // Remember to study this process later you lazy ass mf.
+
+  const content = (
+    <AnimatePresence>
+      {ripples.map((ripple) => (
+        <motion.span
+          key={ripple.id}
+          initial={{
+            opacity: 1,
+            scale: 0,
+            top: ripple.y,
+            left: ripple.x,
+            width: ripple.size,
+            height: ripple.size,
+          }}
+          animate={{ opacity: 0.8, scale: 2 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          onAnimationComplete={() =>
+            setRipples((prev) => prev.filter((r) => r.id !== ripple.id))
+          }
+          className="absolute rounded-full bg-main pointer-events-none"
+        />
+      ))}
+
+      {tooltip && (
+        <span
+          className={`${
+            tooltipPosition === "top" || tooltipPosition === undefined
+              ? "-translate-y-[50px] left[-60%] "
               : ""
-          }   px-4 py-2 font-semibold hover:cursor-pointer hover:underline  transition-all 
+          }
+                pointer-events-none         
+                opacity-0 group-hover/button:opacity-100  
+                absolute top-full 
+                mt-2 
+              bg-gray-50 text-gray-950 
+              font-semibold 
+              text-sm 
+              p-2.5 
+              rounded-full 
+             
+              transition-all 
+              `}>
+          {tooltip}
+        </span>
+      )}
+    </AnimatePresence>
+  );
+
+  if (to)
+    return (
+      <Link
+        {...listeners}
+        onClick={(e) => {
+          handleClick(e);
+          if (onClick) onClick(e);
+        }}
+        to={to}
+        className={`${currentTypeStyle}   font-semibold hover:cursor-pointer relative overflow-hidden rounded-full transition-all 
         ${additionalStyles}
         `}>
+        <span className="flex items-center gap-2 relative z-10">
           {children}
-        </Link>
-      );
+        </span>
+        {content}
+      </Link>
+    );
 
-    if (isLoading)
-      return (
-        <button
-          className={`px-4 py-2 flex items-center gap-2 font-medium hover:cursor-pointer  transition-all ${
-            styles === "standard"
-              ? standard
-              : styles === "alternate"
-              ? alternate
-              : styles === "cancel"
-              ? cancel
-              : ""
-          } `}
-          disabled={disabled}>
-          <Loader2Icon className="animate-spin" />
-          Aguarde
-        </button>
-      );
+  if (isLoading)
     return (
       <button
-        {...listeners}
-        type={type}
-        onClick={onClick}
-        className={`px-4 py-1.5 flex items-center gap-2 font-medium hover:cursor-pointer  transition-all ${
-          styles === "standard"
-            ? standard
-            : styles === "alternate"
-            ? alternate
-            : styles === "cancel"
-            ? cancel
-            : ""
-        }
+        className={` ${currentTypeStyle} flex gap-2 font-semibold hover:cursor-pointer relative overflow-hidden rounded-full transition-all 
+        ${additionalStyles}
+        `}
+        disabled={disabled}>
+        <Loader2Icon className="animate-spin" />
+        <span>Aguarde</span>
+      </button>
+    );
+  return (
+    <button
+      {...listeners}
+      type={type}
+      onClick={onClick}
+      className={`flex items-center gap-2 font-medium hover:cursor-pointer rounded-full transition-all ${currentTypeStyle} 
       ${additionalStyles}
       ${disabled ? "opacity-50 cursor-none" : ""}
        group/button
       `}
-        disabled={disabled}>
-        {content}
-      </button>
-    );
+      disabled={disabled}>
+      <span className="flex items-center gap-2 relative z-10">{children}</span>
+      {content}
+    </button>
+  );
 }

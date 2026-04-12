@@ -1,66 +1,125 @@
-import { Link, useNavigate } from "react-router";
+import { AnimatePresence, motion } from "framer-motion";
+import { useNavigate } from "react-router";
 import Button from "../../ui/Button";
 import { useQuizzes } from "../../contexts/QuizzesContext";
+import { Ellipsis, Pen, Timer } from "lucide-react";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import { Heading } from "@/ui/Heading";
+import { useState } from "react";
 
 export default function QuizItem({ quiz }) {
-
   const navigate = useNavigate();
   const { dispatch, handleDeleteQuiz } = useQuizzes();
-
+  const [selectedCard, setSelectedCard] = useState(false);
+  const numQuestions = quiz.questions.length;
   return (
-    <div className="flex justify-between items-center px-6 py-4 bg-gray-200 rounded-md hover:bg-grey group">
-      <div>
-        <Button to={`/quizzes/${quiz.id}`}>{quiz.title}</Button>
-
+    <motion.div
+      layout
+      className="relative flex flex-col gap-2 h-[250px] items-start text-start justify-between px-6 py-4 bg-grey rounded-md hover:bg-grey group cursor-pointer"
+      transition={{ layout: { duration: 0.3, ease: "easeInOut" } }}
+      onClick={() => navigate(`/quizzes/${quiz.quizId}`)}
+      onHoverStart={() => {
+        setSelectedCard((open) => !open);
+      }}
+      onHoverEnd={() => {
+        setSelectedCard(false);
+      }}>
+      <div className="w-full flex items-center justify-between">
         {!quiz.published && (
-          <span className="bg-amber-500 text-foreground px-4 py-1.5 rounded-2xl font-bold">
-            Rascunho
+          <span className="bg-amber-500 text-xs text-foreground px-4 py-1.5 rounded-2xl font-bold">
+            RASCUNHO
           </span>
         )}
+        <div>
+          <div className="flex items-center">
+            <Timer />
+            <span className="text-xs">{numQuestions}min</span>
+          </div>
+        </div>
       </div>
-      <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-        <Button
-          tooltip="Edit Quiz"
-          onClick={() => navigate(`/quiz/${quiz.id}/edit`)}
-          disabled={false}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="size-6 hover:text-gray-800">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
-            />
-          </svg>
-        </Button>
+      <motion.div
+        initial={{ height: 0 }}
+        animate={{ height: "auto" }}
+        exit={{ height: 0 }}
+        transition={{ ease: "easeInOut" }}>
+        <Heading as={"h3"}> {quiz.title} </Heading>
+      </motion.div>
 
-        <Button
-          onClick={() =>
-            dispatch({
-              type: "confirmAction",
-              payload: { quizId: quiz.id, handler: handleDeleteQuiz },
-            })
-          }
-          tooltip="Delete Quiz">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="size-6 hover:text-red-600">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
-            />
-          </svg>
-        </Button>
+      <AnimatePresence initial={false}>
+        {selectedCard && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{
+              layout: {
+                type: "spring",
+                stiffness: 300,
+                damping: 30,
+              },
+              duration: 0.3,
+              ease: [0.04, 0.62, 0.23, 0.98],
+            }}
+            className="overflow-hidden">
+            <p className="mt-3 text-sm text-gray-500">{quiz.description}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <div className="relative flex items-center self-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex items-center gap-2">
+          {/* Edit button — unchanged */}
+          <Button
+            to={`/quiz/${quiz.quizId}/edit`}
+            tooltip="Edit Quiz"
+            onClick={(e) => e.stopPropagation()}
+            additionalStyles="py-1 px-2 hover:bg-white rounded-md">
+            <Pen width={18} />
+          </Button>
+
+          <DropdownMenu.Root>
+            <DropdownMenu.Trigger asChild>
+              <button
+                onClick={(e) => e.stopPropagation()}
+                className="p-1 cursor-pointer hover:bg-white rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400"
+                aria-label="More options">
+                <Ellipsis />
+              </button>
+            </DropdownMenu.Trigger>
+
+            <DropdownMenu.Portal>
+              <DropdownMenu.Content
+                side="top"
+                align="start"
+                sideOffset={6}
+                className="bg-white rounded-xl border-tint shadow-xs min-w-[120px] z-50
+                  data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95
+                  data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 ">
+                <DropdownMenu.Item
+                  className="text-gra text-sm px-3 py-4  cursor-pointer
+                    hover:bg-gray-100 focus:bg-gray-100 focus:outline-none
+                    data-[highlighted]:bg-gray-100">
+                  Compartilhar
+                </DropdownMenu.Item>
+                <DropdownMenu.Item
+                  onSelect={() =>
+                    dispatch({
+                      type: "confirmAction",
+                      payload: {
+                        quizId: quiz.quizId,
+                        handler: handleDeleteQuiz,
+                      },
+                    })
+                  }
+                  className="text-gra text-sm px-3 py-4  cursor-pointer
+                    hover:bg-gray-100 focus:bg-gray-100 focus:outline-none
+                    data-[highlighted]:bg-gray-100">
+                  Excluir
+                </DropdownMenu.Item>
+              </DropdownMenu.Content>
+            </DropdownMenu.Portal>
+          </DropdownMenu.Root>
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

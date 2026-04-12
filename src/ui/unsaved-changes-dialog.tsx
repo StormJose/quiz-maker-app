@@ -22,11 +22,11 @@ export default function UnsavedChangesDialog({open, onHandleStay, onHandleLeave}
             Você tem alterações não salvas. Deseja realmente sair?
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter>
-          <Button styles={"standard"} onClick={onHandleStay}>
+        <DialogFooter className="flex justify-center items-center gap-2">
+          <Button styles={"standard"} onClick={onHandleStay} additionalStyles={"px-4 py-1.5"}>
             Cancelar
           </Button>
-          <Button onClick={onHandleLeave}>Sair</Button>
+          <Button onClick={onHandleLeave} additionalStyles={"px-4 py-1.5"}>Sair</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

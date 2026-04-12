@@ -2,41 +2,30 @@ import { useEffect, useState } from "react";
 import ButtonDelete from "./ButtonDelete";
 import ButtonAdd from "./ButtonAdd";
 import { useBuilder } from "../../contexts/BuilderContext";
-import { Checkbox } from "@/components/ui/checkbox";
+import AnimatedCheckbox from "@/components/ui/checkbox";
+import { Answer } from "@/types/answers";
+import toast from "react-hot-toast";
 
 // TO DO: Apply drag n' drop functionality to the answers
 export default function Input({ item, active, listeners }) {
-  const [input, setInput] = useState(item.content ?? "");
-  const [isChanged, setIsChanged] = useState(false);
-  const [isFocused, setIsFocused] = useState(false);
-
   const { curQuestion, handleDeleteAnswer, dispatch } = useBuilder();
+  const [input, setInput] = useState<string>(item.content ?? "");
 
   // For now, it is not possible to undo the changes after the input loses focus because
   // the component wouldn't be able to save the changes.
-  useEffect(() => {
-    setIsChanged(input !== item.content);
-
-    if (!isChanged && !isFocused) setInput(item.content);
-  }, [input, item.content, isChanged, isFocused]);
-
-  function handleFocus() {
-    setIsFocused(true);
-  }
-
-  function handleBlur() {
-    setIsFocused(false);
-  }
+  // useEffect(() => {
+  //   setInput(item.content);
+  // }, [input]);
 
   function handleChangeAnswer(e) {
     setInput(e.target.value);
   }
 
-  function handleConfirmChanges(id: integer) {
-    if (!isChanged) return;
-
+  function handleConfirmChanges() {
     const updatedAnswers = curQuestion.answers.map((answer) =>
-      answer.id === id ? { ...answer, content: input } : answer
+      answer.answerId === item.answerId
+        ? { ...answer, content: input }
+        : answer,
     );
 
     const updatedQuestion = {
@@ -47,20 +36,15 @@ export default function Input({ item, active, listeners }) {
     dispatch({ type: "updateQuestion", payload: updatedQuestion });
   }
 
-  async function deleteAnswer(id: integer) {
-    console.log(id);
-    await handleDeleteAnswer(id);
-  }
-
-  function handleCorrectAnswer(answer) {
-    const updatedAnswers = curQuestion?.answers.map((a) =>
-      answer.id === a.id && a.correct_answer === false
-        ? { ...a, correct_answer: true }
-        : { ...a, correct_answer: false }
+  function handleCorrectAnswer(answer: Answer) {
+    const updatedAnswers = curQuestion?.answers.map((a: Answer) =>
+      answer.answerId === a.answerId && a.correctAnswer === false
+        ? { ...a, correctAnswer: true }
+        : { ...a, correctAnswer: false },
     );
 
     const payload = {
-      questionId: curQuestion.id,
+      questionId: curQuestion.questionId,
       answers: updatedAnswers,
     };
     console.log(payload.answers);
@@ -68,19 +52,28 @@ export default function Input({ item, active, listeners }) {
     dispatch({ type: "setCorrectAnswer", payload });
   }
 
+  async function handleDelete(id: string) {
+    try {
+      await handleDeleteAnswer(id);
+      toast.success("Resposta removida");
+    } catch (error) {
+      toast.error("Erro ao excluir resposta");
+    }
+  }
+
   if (curQuestion?.type === "true_false")
     return (
-      <div>
+      <div className="flex items-center">
         <input value={input} disabled />
-        <Checkbox
-          checked={item.correct_answer}
+        <AnimatedCheckbox
+          checked={item.correctAnswer}
           onClick={() => handleCorrectAnswer(item)}
         />
       </div>
     );
 
   return (
-    <li className=" flex gap-2 justify-between items-center">
+    <li className=" flex gap-2 items-center">
       <button
         className={"draggable-btn cursor-grab"}
         type={"button"}
@@ -102,24 +95,25 @@ export default function Input({ item, active, listeners }) {
 
       <label className="relative">
         <input
-          className="border-[1.5px] w-full rounded-2xl border-gray-200 px-4 py-2 focus:outline-gray-500"
-          name={` answer`}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          onChange={handleChangeAnswer}
+          className="border-[1.5px] w-full rounded-2xl border-gray-200 px-4 py-2 focus:outline-gray-500 text-dark"
+          name={`${item.answerId}#answer${item.order}`}
+          onBlur={handleConfirmChanges}
+          onChange={(e) => handleChangeAnswer(e)}
           value={input}
         />
-        {isChanged && (
-          <ButtonAdd onClick={() => handleConfirmChanges(item.id)} />
-        )}
+
+        {/* <ButtonAdd onClick={() => handleConfirmChanges(item.answerId)} /> */}
       </label>
 
       <div className="flex items-center gap-4">
-        <Checkbox
-          checked={item.correct_answer}
+        <AnimatedCheckbox
+          checked={item.correctAnswer}
           onClick={() => handleCorrectAnswer(item)}
         />
-        <ButtonDelete onClick={() => deleteAnswer(item.id)} />
+        <ButtonDelete
+          onClick={() => handleDelete(item.answerId)}
+          disabled={item.correctAnswer}
+        />
       </div>
     </li>
   );

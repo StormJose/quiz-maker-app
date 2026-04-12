@@ -1,9 +1,11 @@
+import { useEffect } from "react";
+import { useParams } from "react-router";
 import { Switch } from "@/components/ui/switch";
 import { useBuilder } from "@/contexts/BuilderContext";
-import { useUnsavedChanges } from "../../hooks/useUnsavedChanges.tsx";
-import Button from "@/ui/Button";
-import { useEffect, useState } from "react";
-import { useParams } from "react-router";
+import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
+import MultiStageButton from "@/ui/multi-stage-button";
+import { feedback } from "@/utils/toast-utils";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function QuizSettings() {
   const { quizId } = useParams();
@@ -14,6 +16,7 @@ export default function QuizSettings() {
     toggleTimer,
     toggleShuffle,
     toggleCustomScore,
+    toggleRealTimeAnswer,
     handleGetQuiz,
     handleUpsertQuizSettings,
   } = useBuilder();
@@ -32,16 +35,25 @@ export default function QuizSettings() {
     toggleCustomScore();
   }
 
-  async function handleSaveChanges() {
-    await handleUpsertQuizSettings(currentQuiz);
+  function handleRealTimeAnswer() {
+    toggleRealTimeAnswer();
+  }
 
-    handleUpdateSettings(currentQuiz?.settings);
+  async function handleSaveChanges() {
+    try {
+      await handleUpsertQuizSettings(currentQuiz);
+
+      handleUpdateSettings(currentQuiz);
+      feedback.success("Mudanças salvas");
+    } catch (error) {
+      feedback.error("Erro ao alterar definições");
+    }
   }
 
   useEffect(() => {
     async function loadQuizData() {
       try {
-        const data = await handleGetQuiz(quizId);
+        await handleGetQuiz(quizId);
       } catch (error) {
         console.error(error);
       }
@@ -84,7 +96,11 @@ export default function QuizSettings() {
           </div>
         </div>
         <div className="grid grid-cols-[0.2fr_2fr] items-center">
-          <Switch disabled={isLoading} />
+          <Switch
+            disabled={isLoading}
+            onClick={handleRealTimeAnswer}
+            checked={currentQuiz?.settings?.realTimeAnswer}
+          />
           <div>
             <h4 className="font-bold text-md">Respostas em Tempo Real</h4>
             <p className="text-accent-foreground">
@@ -106,14 +122,23 @@ export default function QuizSettings() {
           </div>
         </div>
 
-        <Button
+        {/* <Button
           disabled={!dirty}
           styles={"standard"}
-          additionalStyles={"justify-self-start"}
+          additionalStyles={"justify-self-start px-2 py-1.5"}
           onClick={handleSaveChanges}>
           Salvar definições
-        </Button>
+        </Button> */}
+
+        <MultiStageButton
+          disabled={!dirty}
+          className="justify-self-start px-2 py-1.5"
+          onClick={handleSaveChanges}
+          stage={
+            isLoading ? "loading" : dirty ? "dirty" : "idle"
+          }></MultiStageButton>
       </div>
+      <Toaster position="bottom-center" />
     </div>
   );
 }

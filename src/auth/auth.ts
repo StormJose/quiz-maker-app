@@ -65,15 +65,19 @@ export async function signInWithEmail(email, password) {
 
     console.log(data);
 
-    return data;
+    return { data, error };
   } catch (error) {
     console.error(error);
     throw error;
   }
 }
 
-
-
-export async function signOutUser () {
-    return
+export async function signOutUser() {
+  try {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
 }

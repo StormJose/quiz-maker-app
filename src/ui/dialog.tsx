@@ -33,8 +33,8 @@ export default function WarningDialog({open, dialogLabel, dialogMessage, onDismi
           <DialogTitle className="mb-8">{dialogLabel ?? "Aviso"}</DialogTitle>
           <DialogDescription>{dialogMessage}</DialogDescription>
         </DialogHeader>
-        <DialogFooter>
-          <Button styles={"standard"} onClick={onHandleClose}>
+        <DialogFooter className="flex justify-end">
+          <Button styles={"standard"} additionalStyles={"py-1.5 px-4"} onClick={onHandleClose}>
             Voltar
           </Button>
           {/* <Button onClick={onHandleDismiss}>Ignorar</Button> */}

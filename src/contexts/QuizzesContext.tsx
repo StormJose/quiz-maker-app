@@ -30,19 +30,21 @@ function reducer(state, action) {
         status: "loading",
       };
 
-    case "dataLoaded":
+    case "setDataLoaded":
       return {
         ...state,
         quizzes: action.payload,
         status: "ready",
       };
     case "setDialogOpen":
+      console.log(action.payload);
       return {
         ...state,
         showDialog: true,
         confirmHandler: action.payload?.handler,
         dialogMessage: action.payload?.dialogMessage,
         dialogLabel: action.payload?.dialogLabel,
+        status: "ready",
       };
     case "setDialogClose":
       return {
@@ -83,14 +85,14 @@ function reducer(state, action) {
     case "selectAnswer": {
       const exists = state.selectedAnswers.some(
         (selectedAnswer) =>
-          selectedAnswer.questionId === action.payload.questionId
+          selectedAnswer.questionId === action.payload.questionId,
       );
 
       const updatedAnswers = exists
         ? state.selectedAnswers.map((selectedAnswer) =>
             selectedAnswer.questionId === action.payload.questionId
               ? action.payload
-              : selectedAnswer
+              : selectedAnswer,
           )
         : [...state.selectedAnswers, action.payload];
 
@@ -108,7 +110,7 @@ function reducer(state, action) {
 
     case "submitQuiz": {
       const numCorrectAnswers = state.selectedAnswers.filter(
-        (selectedAnswer) => selectedAnswer.answer.correct_answer
+        (selectedAnswer) => selectedAnswer.answer.correct_answer,
       ).length;
 
       return {

@@ -9,6 +9,7 @@ function Switch({
 }: React.ComponentProps<typeof SwitchPrimitive.Root>) {
   return (
     <SwitchPrimitive.Root
+
       checked={checked}
       data-slot={"switch"}
       className={cn(

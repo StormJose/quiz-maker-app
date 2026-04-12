@@ -1,30 +1,43 @@
-import * as React from "react"
-import * as CheckboxPrimitive from "@radix-ui/react-checkbox"
-import { CheckIcon } from "lucide-react"
+import * as Checkbox from "@radix-ui/react-checkbox";
+import { CheckboxButton } from "@/types/ui/checkbox";
+import { motion } from "framer-motion";
+import { Check } from "lucide-react";
 
-import { cn } from "@/utils"
-
-function Checkbox({
+export default function AnimatedCheckbox({
   className,
+  checked,
+  onClick,
   ...props
-}: React.ComponentProps<typeof CheckboxPrimitive.Root>) {
+}: CheckboxButton) {
   return (
-    <CheckboxPrimitive.Root
-      data-slot="checkbox"
-      className={cn(
-        "peer border-input dark:bg-input/30 data-[state=checked]:bg-accent data-[state=checked]:text-primary-foreground dark:data-[state=checked]:bg-accent data-[state=checked]:border-secondary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive size-4 shrink-0 rounded-[4px] border shadow-xs transition-shadow outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50",
-        className
+    <div className="relative grid place-items-center">
+      {checked && (
+        <motion.div
+          className="z-0 absolute inset-0 bg-primary rounded-md"
+          initial={{ opacity: 1 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        />
       )}
-      {...props}
-    >
-      <CheckboxPrimitive.Indicator
-        data-slot="checkbox-indicator"
-        className="flex items-center justify-center text-current transition-none"
-      >
-        <CheckIcon className="size-3.5" />
-      </CheckboxPrimitive.Indicator>
-    </CheckboxPrimitive.Root>
-  )
-}
 
-export { Checkbox }
+      <Checkbox.Root
+        checked={checked}
+        className={`checked:text-primary w-6 h-6 border border-gray-400 rounded-md grid  place-items-center bg-white max-w-6 ${className} `}
+        onClick={onClick}
+        {...props}>
+        <Checkbox.Indicator className="z-10" forceMount>
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0 }}>
+            <Check
+              size={16}
+              className={`${checked ? "text-white" : "text-white"}`}
+            />
+          </motion.div>
+        </Checkbox.Indicator>
+      </Checkbox.Root>
+    </div>
+  );
+}

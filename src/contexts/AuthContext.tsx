@@ -1,18 +1,31 @@
 import { getCurrentUser, getUserData, signInWithEmail, signOutUser, signUpNewUser } from "@/auth/auth";
+import { toMessage } from "@/lib/errors";
+import { Action, InitialState } from "@/types/auth";
 import supabase from "@/utils/supabase";
-import { createContext, useCallback, useContext, useEffect, useReducer } from "react";
-
-
+import {
+  isAuthApiError,
+  isAuthSessionMissingError,
+} from "@supabase/supabase-js";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useReducer,
+} from "react";
 
 const AuthContext = createContext();
- 
-const initialState = {
+
+const initialState: InitialState = {
   status: "idle",
-  error: null,
-  currentUser: null,
+  error: {
+    type: "",
+    message: "",
+  },
+  currentUser: {},
 };
 
-function reducer(state, action) {
+function reducer(state: InitialState, action: Action) {
   switch (action.type) {
     case "setLoading":
       return {
@@ -32,10 +45,38 @@ function reducer(state, action) {
         status: "ready",
       };
     case "setError":
-      return {
-        ...state,
-        error: action.payload,
-      };
+      if (isAuthSessionMissingError(action.payload)) {
+        return {
+          ...state,
+          status: "idle",
+          error: {
+            type: "SessionMissingError",
+            message: "Nenhuma sessão ativa encontrada",
+          },
+        };
+      }
+      if (isAuthApiError(action.payload)) {
+        return {
+          ...state,
+          status: "idle",
+          error: {
+            message: "E-mail ou Senha estão incorretos",
+          },
+        };
+      }
+      if (action.payload instanceof TypeError) {
+        return {
+          ...state,
+          error: {
+            message: "Houve um erro interno. Tente novamente mais tarde :/",
+          },
+        };
+      } else {
+        return {
+          ...state,
+          error: action.payload,
+        };
+      }
 
     case "resetAuth":
       return {
@@ -47,7 +88,7 @@ function reducer(state, action) {
 function AuthProvider({ children }) {
   const [{ status, error, currentUser }, dispatch] = useReducer(
     reducer,
-    initialState
+    initialState,
   );
 
   useEffect(() => {
@@ -60,34 +101,36 @@ function AuthProvider({ children }) {
 
         if (user) dispatch({ type: "getCurrentUser", payload: user });
       } catch (error) {
-        dispatch({ type: "setError", payload: error });
-        throw error;
+        dispatch({ type: "setError", payload: toMessage(error) });
       }
     }
 
     loadUser();
   }, []);
 
-  const signIn = useCallback(async (email, password) => {
+  const signIn = useCallback(async (email: string, password: string) => {
     dispatch({ type: "setLoading" });
     try {
       const { data, error } = await signInWithEmail(email, password);
 
-      return data;
+      if (error) throw error;
+
+      if (data) {
+        dispatch({ type: "getCurrentUser", payload: data?.user });
+      }
     } catch (error) {
-      dispatch({ type: "setError", payload: error });
+      dispatch({ type: "setError", payload: toMessage(error) });
       console.error(error);
     }
   }, []);
 
-  const signUp = useCallback(async (email, password) => {
+  const signUp = useCallback(async (email: string, password: string) => {
     dispatch({ type: "setLoading" });
     try {
       const { data, error } = await signUpNewUser(email, password);
 
-      if (error) throw new Error(error);
+      if (error) throw error;
 
-      console.log(data);
       if (data) {
         console.log(data);
         const { data: userData, error: creationError } = await supabase
@@ -100,17 +143,20 @@ function AuthProvider({ children }) {
         dispatch({ type: "setUser", payload: userData });
       }
     } catch (error) {
+      dispatch({ type: "setError", payload: toMessage(error) });
       console.error(error);
     }
-  });
+  }, []);
 
   const signOut = useCallback(async () => {
     try {
-      await signOutUser();
+      const error = await signOutUser();
 
-      dispatch({ type: "logout" });
+      if (!error) {
+        dispatch({ type: "resetAuth" });
+      }
     } catch (error) {
-      dispatch({ type: "setError", payload: error?.message });
+      dispatch({ type: "setError", payload: toMessage(error) });
       console.error(error);
     }
   }, []);

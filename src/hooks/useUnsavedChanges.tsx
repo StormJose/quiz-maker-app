@@ -9,25 +9,28 @@ export function useUnsavedChanges() {
   const { status, currentQuiz } = useBuilder()
   const [showDialog, setShowDialog] = useState(false);
   // Only load actual initialState when it is ready
-  const [initialSettings, setInitialSettings] = useState(status === 'ready' ? currentQuiz?.settings : {});
+
+  const settings = {
+    enableTimer: currentQuiz.enableTimer,
+    realTimeAnswer: currentQuiz.realTimeAnswer,
+    shuffle: currentQuiz.shuffle,
+    customScore: currentQuiz.customScore,
+  };
+  const [initialSettings, setInitialSettings] = useState(
+    status === "ready" ? settings : {},
+  );
   const nextPathRef = useRef(null);
 
-  
-  const dirty = JSON.stringify(initialSettings) !== JSON.stringify(currentQuiz?.settings)
+  const dirty = JSON.stringify(initialSettings) !== JSON.stringify(settings);
 
-  console.log(dirty)
+  console.log(dirty);
   useBeforeUnload((e) => {
-
     e.preventDefault();
     e.returnValue = "";
-  
-  }
-  );
+  });
 
   const blocker = useBlocker(({currentLocation, nextLocation, historyAction}) => dirty && currentLocation.pathname !== nextLocation.pathname);
 
-  console.log(blocker)
-  
   useEffect(() => {
 
     if (blocker.state === "blocked") {

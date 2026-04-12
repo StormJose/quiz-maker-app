@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { useBuilder } from "@/contexts/BuilderContext";
 import { feedback } from "@/utils/toast-utils";
+import { UseEmblaCarouselType } from "embla-carousel-react";
 import { Copy, SmilePlus, SquaresSubtract, Trash } from "lucide-react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router";
@@ -16,6 +17,7 @@ export default function Toolbox() {
     currentQuiz,
     curQuestion,
   } = useBuilder();
+
   const questions = currentQuiz?.questions ?? [];
 
   async function handleAddQuestion() {
@@ -34,8 +36,7 @@ export default function Toolbox() {
 
   async function deleteQuestion() {
     try {
-      const result = await handleDeleteQuestion(curQuestion.id);
-
+      await handleDeleteQuestion(curQuestion.id);
       toast.success("Pergunta excluída");
     } catch (error) {
       feedback.error("Erro ao excluir pergunta");

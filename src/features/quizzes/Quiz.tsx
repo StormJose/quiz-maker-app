@@ -17,7 +17,7 @@ export default function Quiz() {
   }, [data, dispatch]);
 
   return (
-    <div className="flex justify-between px-4 py-10">
+    <div className=" flex justify-between px-4 py-10">
       <div className="flex flex-col gap-1.5">
         <h3 className="font-bold">{currentQuiz?.title}</h3>
         <p className="text-sm">{currentQuiz?.description}</p>

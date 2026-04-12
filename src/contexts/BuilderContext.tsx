@@ -1,11 +1,9 @@
-import { createContext, useContext, useReducer } from "react";
+import { createContext, useContext, useEffect, useReducer } from "react";
 import {
   deleteAnswer,
   deleteQuestion,
   fetchNumOfQuizzes,
-  fetchQuiz,
   insertQuiz,
-  updateQuiz,
   upsertQuizSettings,
 } from "../api/supabaseApi.js";
 
@@ -20,49 +18,48 @@ const initialState = {
   lastSynced: null,
   numQuizzes: null,
   currentQuiz: {
-    id: null,
+    quizId: null,
     title: "",
-    description: "Seu novo quiz",
+    description: "Seu Novo Quiz",
     questions: [
       {
-        id: new Date().getTime(),
+        questionId: crypto.randomUUID(),
         description: "Essa é sua primeira pergunta",
         answers: [
           {
-            id: new Date().getTime() + 1,
+            answerId: crypto.randomUUID(),
             content: "Essa é sua primeira resposta 1",
-            correct_answer: true,
+            correctAnswer: true,
             order: 1,
           },
           {
-            id: new Date().getTime() + 2,
-            content: "Resposta 2",
-            correct_answer: false,
+            answerId: crypto.randomUUID(),
+            content: "Essa é sua resposta 2",
+            correctAnswer: false,
             order: 2,
           },
           {
-            id: new Date().getTime() + 3,
-            content: "Resposta 3",
-            correct_answer: false,
+            answerId: crypto.randomUUID(),
+            content: "Essa é sua resposta 3",
+            correctAnswer: false,
             order: 3,
           },
           {
-            id: new Date().getTime() + 4,
-            content: "Resposta 4",
-            correct_answer: false,
+            answerId: crypto.randomUUID(),
+            content: "Essa é sua resposta 4",
+            correctAnswer: false,
             order: 4,
           },
         ],
         order: 1,
         type: "multiple_choice",
+        pointsRewarded: 5,
       },
     ],
-
-    settings: {
-      enableTimer: false,
-      shuffle: false,
-      customScore: false,
-    },
+    enableTimer: false,
+    shuffle: false,
+    customScore: false,
+    realTimeAnswer: false,
     published: false,
   },
   curQuestion: {},
@@ -75,7 +72,7 @@ function reducer(state, action) {
     case "dataLoading":
       return {
         ...state,
-        isLoading: true,
+        status: "loading",
       };
     case "dataLoaded":
       return {
@@ -84,17 +81,15 @@ function reducer(state, action) {
         status: "ready",
       };
     case "setNewQuiz": {
-      console.log(action.payload);
       return {
         ...state,
-        numQuizzes: action.payload,
         currentQuiz: {
           ...initialState.currentQuiz,
+          quizId: crypto.randomUUID(),
           title: `Novo Quiz ${action.payload + 1}`,
-          id: new Date().getTime().toString(),
         },
         curQuestion: initialState.currentQuiz.questions[0],
-        isLoading: false,
+        status: "ready",
       };
     }
     case "setCurrentQuiz":
@@ -120,24 +115,24 @@ function reducer(state, action) {
         },
       };
     case "addQuestion": {
-      const newId = state.currentQuiz.questions.length
-        ? Math.max(
-            ...state.currentQuiz.questions.map((question) => question?.id)
-          ) + 1
-        : 1;
+      const newId = crypto.randomUUID();
 
-      const newOrder = state.currentQuiz.questions.length + 1;
+      const newOrder =
+        state.currentQuiz.questions
+          .map((q) => q)
+          .sort((a, b) => b.order - a.order)[0].order + 1;
 
       const newQuestion = {
-        id: newId,
+        questionId: newId,
         description: `Nova pergunta ${newOrder}`,
         answers: state.currentQuiz.questions[0].answers.map((a, index) => ({
           ...a,
-          id: new Date().getTime() + index,
+          answerId: crypto.randomUUID(),
           order: index + 1,
         })),
         type: "multiple_choice",
         order: newOrder,
+        pointsRewarded: 5,
       };
 
       return {
@@ -146,36 +141,37 @@ function reducer(state, action) {
           ...state.currentQuiz,
           questions: [...state.currentQuiz?.questions, newQuestion],
         },
+        curQuestion: newQuestion,
         persist: true,
       };
     }
 
     case "addTrueOrFalseQuestion": {
-      const newId = state.currentQuiz.questions.length
-        ? Math.max(
-            ...state.currentQuiz.questions.map((question) => question?.id)
-          ) + 1
-        : 1;
+      const newId = crypto.randomUUID();
 
-      const newOrder = state.currentQuiz.questions.length + 1;
+      const newOrder =
+        state.currentQuiz.questions
+          .map((q) => q)
+          .sort((a, b) => b.order - a.order)[0].order + 1;
 
       const newQuestion = {
-        id: newId,
-        description: `Nova Pergunta ${newId}`,
+        questionId: newId,
+        description: `Nova Pergunta ${newOrder}`,
         answers: [
           {
-            id: Date.now(),
+            answerId: crypto.randomUUID(),
             content: "Verdadeiro",
-            correct_answer: true,
+            correctAnswer: true,
           },
           {
-            id: Date.now() + 1,
+            answerId: crypto.randomUUID(),
             content: "Falso",
-            correct_answer: false,
+            correctAnswer: false,
           },
         ],
         type: "true_false",
         order: newOrder,
+        pointsRewarded: 5,
       };
 
       return {
@@ -184,28 +180,29 @@ function reducer(state, action) {
           ...state.currentQuiz,
           questions: [...state?.currentQuiz.questions, newQuestion],
         },
+        curQuestion: newQuestion,
         persist: true,
       };
     }
 
     case "cloneQuestion": {
-      const newId = state.currentQuiz.questions.length
-        ? Math.max(
-            ...state.currentQuiz.questions?.map((question) => question?.id)
-          ) + 1
-        : 1;
+      const newId = crypto.randomUUID();
 
-      const newOrder = state.currentQuiz.questions.length + 1;
+      const newOrder =
+        state.currentQuiz.questions
+          .map((q) => q)
+          .sort((a, b) => b.order - a.order)[0].order + 1;
       const clonedQuestion = {
         ...state.curQuestion,
-        answers: state.curQuestion.answers.map((a, i) => ({
+        answers: state.curQuestion.answers.map((a) => ({
           ...a,
-          id: Date.now() + i,
+          answerId: crypto.randomUUID(),
         })),
-        id: newId,
+        questionId: newId,
+        description: state.curQuestion.description + " (Clone)",
         order: newOrder,
+        type: state.curQuestion.type,
       };
-      console.log(clonedQuestion);
 
       return {
         ...state,
@@ -213,12 +210,19 @@ function reducer(state, action) {
           ...state.currentQuiz,
           questions: [...state?.currentQuiz.questions, clonedQuestion],
         },
+        curQuestion: clonedQuestion,
         persist: true,
       };
     }
     case "updateQuestion": {
       const newQuestions = state.currentQuiz.questions.map((question) =>
-        question.id === action.payload.id ? action.payload : question
+        question.questionId === action.payload.questionId
+          ? action.payload
+          : question,
+      );
+
+      const updatedCurQuestion = newQuestions.find(
+        (question) => question.questionId === action.payload.questionId,
       );
 
       return {
@@ -227,25 +231,34 @@ function reducer(state, action) {
           ...state.currentQuiz,
           questions: newQuestions,
         },
-        curQuestion: newQuestions.filter(
-          (question) => question.id === action.payload.id
-        )[0],
+        curQuestion: updatedCurQuestion,
         persist: true,
       };
     }
 
     case "deleteQuestion": {
-      const updatedQuestions = state.currentQuiz.questions.filter(
-        (question) => question.id !== action.payload
+      const newOrder =
+        state.curQuestion.order != 1 ? state.curQuestion.order - 1 : 2;
+      const newCurQuestion = state.currentQuiz.questions.find(
+        (question) => question.order === newOrder,
+      );
+      const updatedQuestions = state.currentQuiz.questions
+        .filter((question) => question.questionId !== action.payload)
+        .map((question, i) =>
+          question ? { ...question, order: i } : question,
+        );
+
+      const reorderedQuestions = updatedQuestions.map((question, i) =>
+        question ? { ...question, order: i + 1 } : question,
       );
 
       return {
         ...state,
         currentQuiz: {
           ...state.currentQuiz,
-          questions: updatedQuestions,
+          questions: reorderedQuestions,
         },
-        curQuestion: updatedQuestions[0],
+        curQuestion: newCurQuestion,
         persist: false,
       };
     }
@@ -254,12 +267,14 @@ function reducer(state, action) {
       const updatedQuestion = {
         ...state.curQuestion,
         answers: state.curQuestion.answers.filter(
-          (a) => a.id !== action.payload
+          (a) => a.answerId !== action.payload,
         ),
       };
 
-      const updatedQuestions = state.currentQuiz.questions.filter(
-        (question) => question.id !== updatedQuestion
+      const updatedQuestions = state.currentQuiz.questions.map((question) =>
+        updatedQuestion.questionId === question.questionId
+          ? updatedQuestion
+          : question,
       );
 
       return {
@@ -267,27 +282,34 @@ function reducer(state, action) {
         currentQuiz: {
           ...state.currentQuiz,
           questions: updatedQuestions,
-          curQuestion: updatedQuestions[0],
         },
+        curQuestion: updatedQuestion,
         persist: false,
       };
     }
 
-    case "reorderQuestions":
+    case "reorderQuestions": {
+      const newArrayOfQuestions = action.payload;
+
+      const reorderedQuestions = newArrayOfQuestions.map((question, i) =>
+        question ? { ...question, order: i + 1 } : question,
+      );
+
       return {
         ...state,
         currentQuiz: {
           ...state.currentQuiz,
-          questions: action.payload,
+          questions: reorderedQuestions,
         },
         persist: true,
       };
+    }
 
     case "reorderAnswers": {
       const updatedQuestions = state.currentQuiz.questions.map((question) =>
-        question.id === action.payload.questionId
+        question.questionId === action.payload.questionId
           ? { ...question, answers: action.payload.newArray }
-          : question
+          : question,
       );
 
       return {
@@ -306,16 +328,15 @@ function reducer(state, action) {
 
     case "setCorrectAnswer": {
       const updatedQuestions = state.currentQuiz.questions.map((question) =>
-        question.id === action.payload.questionId
+        question.questionId === action.payload.questionId
           ? { ...question, answers: action.payload.answers }
-          : question
+          : question,
       );
 
       const updatedCurQuestion = updatedQuestions?.find(
-        (question) => question.id === action.payload.questionId
+        (question) => question.questionId === action.payload.questionId,
       );
 
-      console.log(updatedCurQuestion);
       return {
         ...state,
         currentQuiz: {
@@ -342,7 +363,7 @@ function reducer(state, action) {
         error: null,
       };
 
-    case "saveDraft":
+    case "setSaveDraft":
       return {
         ...state,
         status: "ready",
@@ -356,10 +377,7 @@ function reducer(state, action) {
         ...state,
         currentQuiz: {
           ...state.currentQuiz,
-          settings: {
-            ...state.currentQuiz.settings,
-            enableTimer: state.currentQuiz.settings.enableTimer ? false : true,
-          },
+          enableTimer: state.currentQuiz.enableTimer ? false : true,
         },
       };
 
@@ -368,10 +386,7 @@ function reducer(state, action) {
         ...state,
         currentQuiz: {
           ...state.currentQuiz,
-          settings: {
-            ...state.currentQuiz.settings,
-            shuffle: state.currentQuiz.settings.shuffle ? false : true,
-          },
+          shuffle: state.currentQuiz.shuffle ? false : true,
         },
       };
 
@@ -380,10 +395,16 @@ function reducer(state, action) {
         ...state,
         currentQuiz: {
           ...state.currentQuiz,
-          settings: {
-            ...state.currentQuiz.settings,
-            customScore: state.currentQuiz.settings.customScore ? false : true,
-          },
+          customScore: state.currentQuiz.customScore ? false : true,
+        },
+      };
+
+    case "setRealTimeAnswer":
+      return {
+        ...state,
+        currentQuiz: {
+          ...state.currentQuiz,
+          realTimeAnswer: state.currentQuiz.realTimeAnswer ? false : true,
         },
       };
 
@@ -410,7 +431,6 @@ function BuilderProvider({ children }) {
       lastSynced,
       persist,
       currentQuiz,
-      questions,
       curQuestion,
     },
     dispatch,
@@ -419,6 +439,9 @@ function BuilderProvider({ children }) {
   const toggleTimer = () => dispatch({ type: "setTimer" });
   const toggleShuffle = () => dispatch({ type: "setShuffle" });
   const toggleCustomScore = () => dispatch({ type: "setCustomScore" });
+  const toggleRealTimeAnswer = () => dispatch({ type: "setRealTimeAnswer" });
+
+  useEffect(() => {}, [currentQuiz]);
 
   async function handleNumOfQuizzes(filters) {
     const numQuizzes = await fetchNumOfQuizzes(filters);
@@ -426,36 +449,7 @@ function BuilderProvider({ children }) {
     return numQuizzes;
   }
 
-  async function handleNewQuiz() {
-    dispatch({ type: "dataLoading" });
-    try {
-      const numQuizzes = await handleNumOfQuizzes();
-
-      dispatch({ type: "setNewQuiz", payload: numQuizzes });
-    } catch (error) {
-      console.error(error);
-    } finally {
-      dispatch({ type: "dataLoaded" });
-    }
-  }
-
-  // quizzes
-  async function handleGetQuiz(quizId) {
-    dispatch({ type: "dataLoading" });
-    try {
-      const data = await fetchQuiz(quizId);
-
-      dispatch({ type: "setCurrentQuiz", payload: data });
-      return data;
-    } catch (error) {
-      dispatch({ type: "setError", payload: error });
-    } finally {
-      dispatch({ type: "dataLoaded" });
-    }
-  }
-
   async function handleInsertQuiz(quiz) {
-    dispatch({ type: "dataLoading" });
     try {
       const data = await insertQuiz(quiz);
 
@@ -502,12 +496,12 @@ function BuilderProvider({ children }) {
   }
 
   // Answers
-  async function handleDeleteAnswer(answerId) {
+  async function handleDeleteAnswer(answerId: string) {
     dispatch({ type: "dataLoading" });
     try {
       const result = await deleteAnswer(answerId);
-
-      if (result) dispatch({ type: "deleteAnswer", answerId });
+      console.log(result);
+      if (result) dispatch({ type: "deleteAnswer", payload: answerId });
     } catch (error) {
       console.error(error);
       throw error;
@@ -525,19 +519,16 @@ function BuilderProvider({ children }) {
         lastSynced,
         persist,
         currentQuiz,
-        questions,
         curQuestion,
         handleNumOfQuizzes,
-        handleNewQuiz,
-        handleGetQuiz,
         handleInsertQuiz,
         handleUpsertQuizSettings,
-        // handleUpdateQuiz,
         handleDeleteQuestion,
         handleDeleteAnswer,
         toggleShuffle,
         toggleTimer,
         toggleCustomScore,
+        toggleRealTimeAnswer,
         dispatch,
       }}>
       {children}
@@ -546,14 +537,12 @@ function BuilderProvider({ children }) {
 }
 
 function useBuilder() {
-    const context = useContext(BuilderContext)
+  const context = useContext(BuilderContext);
 
-    if (context === undefined) throw new Error('Tentou acessar o Context fora do Provider')
+  if (context === undefined)
+    throw new Error("Tentou acessar o Context fora do Provider");
 
-    return context
+  return context;
 }
 
-
-export {
-    BuilderProvider, useBuilder
-}
+export { BuilderProvider, useBuilder };

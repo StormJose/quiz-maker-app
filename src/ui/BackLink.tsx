@@ -14,7 +14,7 @@ export default function BackLink() {
     .filter((segment) => segment === "quizzes")[0];
 
   function handleNavigate() {
-    navigate(-1, { replace: true, preventScrollReset: true });
+    navigate("/", { replace: true, preventScrollReset: true });
     dispatch({ type: "resetBuilder" });
   }
 

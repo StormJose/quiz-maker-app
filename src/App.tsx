@@ -1,7 +1,9 @@
 import { createBrowserRouter,  RouterProvider } from "react-router"
 import Home from "./Home"
-import AppLayout from "./ui/AppLayout";
-import AllQuizzes from "./features/quizzes/AllQuizzes";
+import AppLayout, { protectedLoader } from "./ui/AppLayout";
+import AllQuizzes, {
+  loader as allQuizzesLoader,
+} from "./features/quizzes/AllQuizzes";
 import Quiz, { loader as quizLoader } from "./features/quizzes/Quiz";
 import QuizResults from "./features/quizzes/QuizResults";
 import InQuiz, {
@@ -9,12 +11,16 @@ import InQuiz, {
 } from "./features/quiz-taking/InQuiz";
 import Register from "./features/users/Register";
 import Login from "./features/users/login";
-import Builder from "./features/builder/Builder";
-import BuilderLayout from "./layouts/builder-layout";
+import NewBuilder from "./features/builder/new-builder";
+import BuilderLayout, {
+  editQuizLoader,
+  newQuizLoader,
+} from "./layouts/builder-layout";
 import QuizSettings from "./features/settings/quiz-settings";
-import Settings from "./features/users/settings";
 import ErrorBoundary from "./ui/error-boundary";
-
+import Preview from "./features/builder/Preview";
+import NotFound from "./ui/NotFound";
+import Settings from "./features/users/settings";
 
 const routes = [
   {
@@ -26,6 +32,7 @@ const routes = [
     path: "/quizzes",
     name: "Quizzes",
     element: <AllQuizzes />,
+    loader: allQuizzesLoader,
     ErrorElement: <ErrorBoundary />,
   },
   {
@@ -37,22 +44,17 @@ const routes = [
   },
 
   {
-    path: "/quizzes/:quizId/questions/:questionId",
-    name: "Questions",
-    element: <InQuiz />,
-    errorElement: <ErrorBoundary />,
-    loader: questionsLoader,
-  },
-  {
     path: "/quiz/new",
     name: "New Quiz",
+    id: "new-quiz",
     element: <BuilderLayout />,
+    loader: newQuizLoader,
     errorElement: <ErrorBoundary />,
     children: [
       {
         path: "/",
         name: "New Quiz - Builder",
-        element: <Builder />,
+        element: <NewBuilder />,
         ErrorElement: <ErrorBoundary />,
       },
       {
@@ -64,7 +66,7 @@ const routes = [
       {
         path: "preview",
         name: "New Quiz - Builder",
-        element: <Builder />,
+        element: <Preview />,
         ErrorElement: <ErrorBoundary />,
       },
     ],
@@ -72,25 +74,27 @@ const routes = [
   {
     path: "/quiz/:quizId/edit",
     name: "Edit Quiz",
+    id: "edit-quiz",
     element: <BuilderLayout />,
+    loader: editQuizLoader,
     errorElement: <ErrorBoundary />,
     children: [
       {
         path: "/",
-        name: "New Quiz - Builder",
-        element: <Builder />,
+        name: "Edit Quiz - Builder",
+        element: <NewBuilder />,
         ErrorElement: <ErrorBoundary />,
       },
       {
         path: "settings",
-        name: "New Quiz - Settings",
+        name: "Edit Quiz - Settings",
         element: <QuizSettings />,
         ErrorElement: <ErrorBoundary />,
       },
       {
         path: "preview",
-        name: "New Quiz - Builder",
-        element: <Builder />,
+        name: "Edit Quiz - Builder",
+        element: <Preview />,
         ErrorElement: <ErrorBoundary />,
       },
     ],
@@ -107,6 +111,7 @@ export const router = createBrowserRouter([
   {
     path: "/",
     element: <AppLayout />,
+    loader: protectedLoader,
     children: routes.map((route) => ({
       path: route.path === "/" ? undefined : route.path,
       element: route.element,
@@ -132,6 +137,16 @@ export const router = createBrowserRouter([
   {
     path: "/settings",
     element: <Settings />,
+  },
+  {
+    path: "/quizzes/:quizId/questions/:questionId",
+    element: <InQuiz />,
+    errorElement: <ErrorBoundary />,
+    loader: questionsLoader,
+  },
+  {
+    path: "*",
+    element: <NotFound />,
   },
 ]);
 

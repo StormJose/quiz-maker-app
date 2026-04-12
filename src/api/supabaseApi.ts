@@ -1,9 +1,17 @@
 import { getCurrentUser } from "@/auth/auth";
+import {
+  normalizeQuiz,
+  toDbAnswer,
+  toDbQuestion,
+  toDbQuiz,
+} from "@/lib/mappers";
+import { FullQuizView } from "@/types/full-quiz-view";
+import { RawAnswer } from "@/types/raw/answers";
+import { RawFullQuizView } from "@/types/raw/full-quiz-view";
+import { RawQuestion } from "@/types/raw/questions";
 import supabase from "@/utils/supabase";
 
-const baseURL = "http://localhost:8000/quizzes";
-
-export const fetchQuizzes = async function (userId) {
+export const fetchQuizzes = async function (userId: string) {
   try {
     const { data, error } = await supabase
       .from("full_quiz_view")
@@ -11,14 +19,10 @@ export const fetchQuizzes = async function (userId) {
       .eq("user_id", userId);
 
     if (error) {
-      console.log(error);
       throw error;
     }
-    console.log(data);
-    return {
-      data,
-      error,
-    };
+
+    return (data as RawFullQuizView[]).map(normalizeQuiz);
   } catch (error) {
     console.error(error);
   }
@@ -35,7 +39,7 @@ export const fetchNumOfQuizzes = async function (filters = {}) {
     if (Object.entries(filters).length !== 0) {
       const { data, count, error } = await supabase
         .from("quizzes")
-        .select("id", { count: "exact", head: true })
+        .select("quiz_id", { count: "exact", head: true })
         .eq("user_id", curUser.id)
         .eq(column, value);
 
@@ -47,7 +51,7 @@ export const fetchNumOfQuizzes = async function (filters = {}) {
     } else {
       const { data, count, error } = await supabase
         .from("quizzes")
-        .select("id", { count: "exact", head: true })
+        .select("quiz_id", { count: "exact", head: true })
         .eq("user_id", curUser.id);
 
       if (error) {
@@ -61,65 +65,47 @@ export const fetchNumOfQuizzes = async function (filters = {}) {
   }
 };
 
-export const fetchQuiz = async function (quizId) {
+export const fetchQuiz = async function (quizId: string) {
+  if (!quizId) return;
+
   try {
     const { data, error } = await supabase
       .from("full_quiz_view")
       .select("*")
-      .eq("id", quizId)
+      .eq("quiz_id", quizId)
       .single();
 
     if (error) {
       throw error;
     }
 
-    const quizData = {
-      ...data,
-      settings: {
-        customScore: data.custom_score,
-        enableTimer: data.enable_timer,
-        shuffle: data.shuffle,
-      },
-    };
-    return quizData;
+    return normalizeQuiz(data);
   } catch (error) {
     console.error(error);
   }
 };
 
-export const insertQuiz = async function (newQuiz) {
-  console.log(newQuiz);
+export const insertQuiz = async function (quiz: FullQuizView) {
   const { user: curUser } = await getCurrentUser();
-  const { settings, questions, ...quiz } = newQuiz;
 
-  const flattenedQuestions = questions.map(
-    ({ id, description, order, type }) => {
-      return { id, description, order, quiz: quiz.id, type };
-    }
+  const dbQuiz = toDbQuiz(quiz, curUser.id);
+
+  const flattenedQuestions = quiz.questions.map((q) =>
+    toDbQuestion(q, quiz.quizId),
   );
 
-  const answers = questions.flatMap((question) =>
-    question.answers.map((answer) => ({
-      question: question.id,
-      ...answer,
-    }))
+  const answers = quiz.questions.flatMap(
+    (question) =>
+      question.answers.map((a) => toDbAnswer(a, question.questionId)) ?? [],
   );
 
   try {
-    const { data, error } = await supabase.from("quizzes").upsert({
-      ...quiz,
-      user_id: curUser?.id,
-      custom_score: settings.customScore,
-      enable_timer: settings.enableTimer,
-      shuffle: settings.shuffle,
-    });
+    const { data, error } = await supabase.from("quizzes").upsert(dbQuiz);
+    if (error) throw error;
 
     await insertQuestions(flattenedQuestions);
     await insertAnswers(answers);
 
-    if (error) throw error;
-
-    console.log(flattenedQuestions);
     return data;
   } catch (error) {
     console.error(error);
@@ -127,11 +113,11 @@ export const insertQuiz = async function (newQuiz) {
   }
 };
 
-export const insertQuestions = async function (questionData) {
+export const insertQuestions = async function (questionData: RawQuestion[]) {
   try {
     const { data, error } = await supabase
       .from("questions")
-      .upsert(questionData, { onConflict: "id" })
+      .upsert(questionData, { onConflict: "question_id" })
       .select("*");
 
     if (error) throw error;
@@ -143,11 +129,11 @@ export const insertQuestions = async function (questionData) {
   }
 };
 
-export const insertAnswers = async function (answerData) {
+export const insertAnswers = async function (answerData: RawAnswer[]) {
   try {
     const { data, error } = await supabase
       .from("answers")
-      .upsert(answerData, { onConflict: "id" })
+      .upsert(answerData, { onConflict: "answer_id" })
       .select("*");
 
     if (error) throw error;
@@ -159,21 +145,21 @@ export const insertAnswers = async function (answerData) {
   }
 };
 
-export const upsertQuizSettings = async function (quizData) {
+export const upsertQuizSettings = async function (quizData: Quiz) {
   const { user: curUser } = await getCurrentUser();
-  const { settings } = quizData;
 
   const update = {
-    id: quizData.id,
-    custom_score: settings.customScore,
-    enable_timer: settings.enableTimer,
-    shuffle: settings.shuffle,
+    quiz_id: quizData.quizId,
+    custom_score: quizData.customScore,
+    enable_timer: quizData.enableTimer,
+    shuffle: quizData.shuffle,
+    real_time_answer: quizData.realTimeAnswer,
   };
 
   try {
     const { data, error } = await supabase
       .from("quizzes")
-      .upsert({ ...update, user_id: curUser.id }, { onConflict: "id" })
+      .upsert({ ...update, user_id: curUser.id }, { onConflict: "quiz_id" })
       .select("*");
 
     if (error) throw error;
@@ -185,15 +171,12 @@ export const upsertQuizSettings = async function (quizData) {
   }
 };
 
-export const updateQuiz = async function (quizData) {};
-
 export const deleteQuiz = async function (quizId) {
-  console.log(quizId);
   try {
     const { data, error } = await supabase
       .from("quizzes")
       .delete()
-      .eq("id", quizId)
+      .eq("quiz_id", quizId)
       .select();
 
     if (error) throw error;
@@ -209,10 +192,7 @@ export const deleteQuiz = async function (quizId) {
 //     const res = await fetch(`http://localhost:8000/questions`);
 // }
 
-const updateQuestion = async function (questionId) {};
-
-export const deleteQuestion = async function (questionId) {
-  console.log(questionId);
+export const deleteQuestion = async function (questionId: string) {
   try {
     const { data: answersData } = await supabase
       .from("answers")
@@ -223,7 +203,7 @@ export const deleteQuestion = async function (questionId) {
     const { data, error } = await supabase
       .from("questions")
       .delete()
-      .eq("id", questionId)
+      .eq("question_id", questionId)
       .select();
 
     if (error) throw error;
@@ -235,13 +215,12 @@ export const deleteQuestion = async function (questionId) {
   }
 };
 
-export const deleteAnswer = async function (answerId) {
+export const deleteAnswer = async function (answerId: string) {
   try {
-    console.log(answerId);
     const { data, error } = await supabase
       .from("answers")
       .delete()
-      .eq("id", answerId)
+      .eq("answer_id", answerId)
       .select();
 
     if (error) throw error;
