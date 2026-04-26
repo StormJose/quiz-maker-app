@@ -13,6 +13,11 @@ export default function Header() {
 
   const { signOut } = useAuth();
 
+  function handleSignOut () {
+
+    signOut()
+    navigate("/signin")
+  }
   const menus: MenuList = [
     {
       id: 1,
@@ -30,9 +35,10 @@ export default function Header() {
       id: 3,
       label: "Sign Out",
       icon: <LogOut className="w-5 h-5" />,
-      action: () => signOut(),
+      action: () => handleSignOut(),
     },
   ];
+
 
   return (
     <header>

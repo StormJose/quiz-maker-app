@@ -1,4 +1,3 @@
-import supabase from "@/utils/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Outlet,
@@ -12,7 +11,6 @@ import Loader from "./Loader";
 import Header from "./Header";
 import ConfirmAction from "./ConfirmAction";
 import Button from "./Button";
-import { useEffect } from "react";
 import { getCurrentUser } from "@/auth/auth";
 
 export default function AppLayout() {
@@ -54,8 +52,11 @@ export default function AppLayout() {
     );
 }
 
+
 export const protectedLoader = async () => {
   const session = await getCurrentUser();
-  if (!session) return redirect("/signin");
+
+  if (!session.user) return redirect("/signin");
+ 
   return null;
 };

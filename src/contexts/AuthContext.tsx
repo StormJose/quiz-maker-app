@@ -45,6 +45,7 @@ function reducer(state: InitialState, action: Action) {
         status: "ready",
       };
     case "setError":
+      console.log(action.payload)
       if (isAuthSessionMissingError(action.payload)) {
         return {
           ...state,
@@ -65,8 +66,10 @@ function reducer(state: InitialState, action: Action) {
         };
       }
       if (action.payload instanceof TypeError) {
+    
         return {
           ...state,
+        
           error: {
             message: "Houve um erro interno. Tente novamente mais tarde :/",
           },
@@ -74,6 +77,7 @@ function reducer(state: InitialState, action: Action) {
       } else {
         return {
           ...state,
+          status: "idle",
           error: action.payload,
         };
       }
@@ -90,23 +94,6 @@ function AuthProvider({ children }) {
     reducer,
     initialState,
   );
-
-  useEffect(() => {
-    async function loadUser() {
-      dispatch({ type: "setLoading" });
-      try {
-        const session = await getCurrentUser();
-
-        const user = await getUserData(session?.user.id);
-
-        if (user) dispatch({ type: "getCurrentUser", payload: user });
-      } catch (error) {
-        dispatch({ type: "setError", payload: toMessage(error) });
-      }
-    }
-
-    loadUser();
-  }, []);
 
   const signIn = useCallback(async (email: string, password: string) => {
     dispatch({ type: "setLoading" });

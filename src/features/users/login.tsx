@@ -14,7 +14,7 @@ export default function Login() {
      email?: string;
      password?: string;
    };
-   const { signIn, currentUser, error, status, dispatch } = useAuth();
+   const { currentUser, error, status, signIn, dispatch } = useAuth();
 
    const [errors, setErrors] = useState<FormErrors>({
      email: "",
@@ -24,11 +24,6 @@ export default function Login() {
      email: "",
      password: "",
    });
-
-   useEffect(() => {
-     if (currentUser) navigate("/");
-   }, [currentUser]);
-
    async function handleSubmit() {
      const formErrors: FormErrors = {};
 
@@ -51,9 +46,8 @@ export default function Login() {
        try {
          await signIn(form.email, form.password);
 
-         if (currentUser?.id) {
-           navigate("/");
-         } else return error;
+          navigate("/");
+  
        } catch (error) {
          console.error(error);
          throw error;
@@ -101,3 +95,4 @@ export default function Login() {
      </Form>
    );
 }
+

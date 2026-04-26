@@ -105,6 +105,10 @@ const routes = [
     name: "Quiz Results",
     element: <QuizResults />,
   },
+   {
+    path: "/settings",
+    element: <Settings />,
+  },
 ];
 
 export const router = createBrowserRouter([
@@ -134,10 +138,7 @@ export const router = createBrowserRouter([
     path: "/signin",
     element: <Login />,
   },
-  {
-    path: "/settings",
-    element: <Settings />,
-  },
+ 
   {
     path: "/quizzes/:quizId/questions/:questionId",
     element: <InQuiz />,

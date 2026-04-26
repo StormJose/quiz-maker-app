@@ -7,8 +7,6 @@ export async function getCurrentUser() {
   try {
     const { data, error } = await supabase.auth.getUser();
 
-    if (error) throw error;
-
     return data;
   } catch (error) {
     console.error(error);
@@ -18,6 +16,7 @@ export async function getCurrentUser() {
 
 export async function getUserData(id) {
   try {
+    if (!id) return 
     const { data, error } = await supabase
       .from("users")
       .select("*")
@@ -65,7 +64,7 @@ export async function signInWithEmail(email, password) {
 
     console.log(data);
 
-    return { data, error };
+    return data;
   } catch (error) {
     console.error(error);
     throw error;
