@@ -1,19 +1,10 @@
-import {
-  Outlet,
-  useLoaderData,
-  useNavigate,
-  useNavigation,
-  useParams,
-} from "react-router";
-import Sidebar from "./sidebar";
-import { useBuilder } from "@/contexts/BuilderContext";
-import { fetchNumOfQuizzes, fetchQuiz, fetchQuizzes } from "@/api/supabaseApi";
-import { getCurrentUser } from "@/auth/auth";
-import { useEffect } from "react";
-import { QuizItemSkeleton } from "@/skeletons/quiz-item-skeleton";
-import { useQuizzes } from "@/contexts/QuizzesContext";
-import BuilderSkeleton from "@/skeletons/BuilderSkeleton";
-import { useWarningDialog } from "@/hooks/useWarningDialog";
+
+import { Outlet } from "react-router"
+import Sidebar from "./sidebar"
+import { useBuilder } from "@/store/builderStore"
+import Spinner from "@/ui/Spinner";
+import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
+import Button from "@/ui/Button";
 
 export default function BuilderLayout() {
   const { quizId } = useParams();

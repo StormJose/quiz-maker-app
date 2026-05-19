@@ -1,10 +1,6 @@
-import * as NavigationMenu from "@radix-ui/react-navigation-menu";
-import * as Avatar from "@radix-ui/react-avatar";
-import { useNavigate } from "react-router";
-import profile from "../assets/profile.webp";
-import { LogOut, Settings, User } from "lucide-react";
-import { MenuList } from "@/types/menus";
-import { useState } from "react";
+import { useQuizzes } from "@/contexts/QuizzesContext";
+import AutoSave from "./AutoSave";
+import Button from "./Button";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function Header() {

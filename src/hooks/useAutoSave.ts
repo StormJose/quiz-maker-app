@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from "react";
+import { useBuilder } from "../store/builderStore";
 
 const areEqual = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
@@ -8,8 +9,11 @@ export function useAutoSaveQuiz(quizData = {}, onRestore, status, persist, handl
   const isOnline = navigator.onLine;
   const lastSyncedRef = useRef(null);
   const hasSyncedRef = useRef(false);
-  
-  const quizKey = `quiz_draft_${quizData?.quizId}`;
+
+  const { draftStatus, lastSynced, persist, handleInsertQuiz, saveDraft } =
+    useBuilder();
+
+  const quizKey = `quiz_draft_${quizData?.id}`;
   const savedDraft = localStorage.getItem(quizKey);
   useEffect(() => {
     if (status !== "ready" || hasRestored) return;
@@ -20,7 +24,7 @@ export function useAutoSaveQuiz(quizData = {}, onRestore, status, persist, handl
       setDraft(parsed);
       setHasRestored(true);
 
-      onSaveDraft(isOnline)
+      saveDraft(isOnline ? "Saving" : "Offline");
     } else {
       console.log("Nenhum draft encontrado, inicializando um novo...");
     }
@@ -38,7 +42,7 @@ export function useAutoSaveQuiz(quizData = {}, onRestore, status, persist, handl
     }, 1000);
   
     setDraft(quizData);
-    onSaveDraft(isOnline ? "Saving": "Offline");
+    saveDraft(isOnline ? "Saving" : "Offline");
     setHasRestored(true);
     return () => clearTimeout(timeout);
     
@@ -59,9 +63,9 @@ export function useAutoSaveQuiz(quizData = {}, onRestore, status, persist, handl
         }
       } catch (error) {
         console.error("Erro ao salvar draft remotamente:", error);
-        onSaveDraft(isOnline ? "Saved": "Offline");
+        saveDraft("Offline");
       } finally {
-        onSaveDraft("Saved")
+        saveDraft("Saved");
       }
     }, 1000);
 

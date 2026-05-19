@@ -1,11 +1,11 @@
 import { useEffect } from "react";
 import { useParams } from "react-router";
 import { Switch } from "@/components/ui/switch";
-import { useBuilder } from "@/contexts/BuilderContext";
-import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
-import MultiStageButton from "@/ui/multi-stage-button";
-import { feedback } from "@/utils/toast-utils";
-import toast, { Toaster } from "react-hot-toast";
+import { useBuilder } from "@/store/builderStore";
+import { useUnsavedChanges } from "../../hooks/useUnsavedChanges.tsx";
+import Button from "@/ui/Button";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router";
 
 export default function QuizSettings() {
   const { quizId } = useParams();

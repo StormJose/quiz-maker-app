@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useBeforeUnload, useBlocker, useNavigate } from "react-router";
-import { useBuilder } from "../contexts/BuilderContext";
+import { useBuilder } from "../store/builderStore";
 import UnsavedChangesDialog from "@/ui/unsaved-changes-dialog";
 
 export function useUnsavedChanges() {
