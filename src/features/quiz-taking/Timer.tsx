@@ -1,44 +1,36 @@
-import { useEffect, useState } from 'react'
-import { useQuizzes } from '../../contexts/QuizzesContext'
+import { useEffect, useState } from "react";
 
-export default function Timer() {
-  // const { dispatch, timer } = useQuizzes();
+export default function Timer({quizTime}: {quizTime: number}) {
 
-  // const mins = Math.floor(timer / 60);
-  // const secs = timer % 60;
+  const [timerSeconds, setTimerSeconds] = useState(quizTime);
 
-  // useEffect(() => {
-  //   const id = setInterval(() => {
-  //     dispatch({ type: "tick" });
-  //   }, 1000);
 
-  //   return () => clearInterval(id);
-  // }, [dispatch]);
+  const parseTimer = (totalSeconds) => {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
 
-  // return (
-  //   <div className="flex items-center">
-  //     <div className="border-[1.88px] rounded-xl px-3 py-1 flex items-center gap-1">
-  //       <svg
-  //         xmlns="http://www.w3.org/2000/svg"
-  //         fill="none"
-  //         viewBox="0 0 24 24"
-  //         stroke-width="1.5"
-  //         stroke="currentColor"
-  //         className="size-6 text-dark">
-  //         <path
-  //           stroke-linecap="round"
-  //           stroke-linejoin="round"
-  //           d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-  //         />
-  //       </svg>
+    return `${minutes}:${String(seconds).padStart(2, "0")}`;
+   } 
 
-  //       <p className="mt-[0.8px]">
-  //         {mins}:{secs < 10 && "0"}
-  //         {secs}
-  //       </p>
-  //     </div>
-  //   </div>
-  // );
+  useEffect(() => {
 
-  return <div></div>;
+    let intervalId: string = null;
+    const pausedTime = 0;
+    function testTimer() {
+    if (intervalId) return; 
+      intervalId = setInterval(() => {
+        setTimerSeconds((s) => s - 1)
+      }, 1000);  
+    }
+    testTimer()
+    console.log(timerSeconds)
+
+   return () => clearInterval(intervalId)
+}, [timerSeconds])
+
+  return (
+    <div className="rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm font-medium text-dark">
+      {parseTimer(timerSeconds)}
+    </div>
+  );
 }

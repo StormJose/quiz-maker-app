@@ -3,29 +3,19 @@ import {
   Outlet,
   redirect,
   useLocation,
-  useNavigate,
-  useNavigation,
 } from "react-router";
 import BackLink from "./BackLink";
-import Loader from "./Loader";
 import Header from "./Header";
 import ConfirmAction from "./ConfirmAction";
 import Button from "./Button";
 import { getCurrentUser } from "@/auth/auth";
 
 export default function AppLayout() {
-  const navigate = useNavigate();
-  const navigation = useNavigation();
 
   const pathname = useLocation().pathname;
 
-  const { currentUser, error } = useAuth();
+  const { error } = useAuth();
 
-  // useEffect(() => {
-  //   if (!currentUser.id) {
-  //     navigate("/signin");
-  //   }
-  // }, [currentUser]);
 
   if (error.type != "SessionMissingError")
     return (

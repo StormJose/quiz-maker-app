@@ -109,6 +109,15 @@ const routes = [
     path: "/settings",
     element: <Settings />,
   },
+  // Add to your router configuration
+{
+  path: "/profile/:userId",
+  // element: <ProfilePage />,
+},
+{
+  path: "/profile/settings",
+  // element: <ProfileSettings />,
+}
 ];
 
 export const router = createBrowserRouter([

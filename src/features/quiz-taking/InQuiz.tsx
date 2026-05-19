@@ -1,197 +1,67 @@
-import { fetchQuiz } from "../../api/supabaseApi.js";
-import { useEffect } from "react";
-import { useLoaderData, useNavigate } from "react-router";
-import { useQuizzes } from "../../contexts/QuizzesContext.js";
-import QuizNav from "./QuizNav.js";
-import Button from "../../ui/Button.js";
-import QuizMenu from "./QuizMenu.js";
-import AnimatedCheckbox from "@/components/ui/checkbox.js";
+
+import { motion, AnimatePresence } from "framer-motion";
+import QuestionItem from "./QuestionItem";
+import Timer from "./Timer";
+import QuizNav from "./QuizNav";
 
 export default function InQuiz() {
-  const navigate = useNavigate();
-  const { result: quiz, questionId } = useLoaderData();
-  const { dispatch, currentQuiz, selectedAnswers, totalScore } = useQuizzes();
-
-  const questions = quiz?.questions ?? {};
-  const curQuestion =
-    quiz && questions.find((question) => question.id === Number(questionId));
-  console.log(curQuestion);
-
-  const selectedAnswer = selectedAnswers.find(
-    (answer) => answer.questionId === curQuestion.id
-  );
-
-  const isFirst = curQuestion?.order === 1;
-  const isLast = curQuestion?.order === questions.length - 1;
-
-  console.log(questions, isLast);
-  const allAnswersChecked = selectedAnswers.length === quiz?.questions.length;
-  const IsTryOut = location.pathname
-    .split("/")
-    .filter((segment) => segment === "tryout")[0];
-
-  useEffect(() => {
-    dispatch({ type: "setCurrentQuiz", payload: quiz });
-    dispatch({ type: "setCurQuestion", payload: curQuestion });
-  }, [dispatch, quiz, curQuestion]);
-
-  function handleNextQuestion() {
-    const nextQuestion = questions.find(
-      (question) => question?.order === curQuestion?.order + 1
-    );
-    if (!isLast) navigate(`/quizzes/${quiz.id}/questions/${nextQuestion.id}`);
-  }
-
-  function handlePreviousQuestion() {
-    const previousQuestion = questions.find(
-      (question) => question.order === curQuestion.order - 1
-    );
-    if (!isFirst) {
-      navigate(`/quizzes/${quiz.id}/questions/${previousQuestion.id}`);
-    }
-  }
-
-  function handleSelectAnswer(answer) {
-    const newAnswer = {
-      questionId: curQuestion.id,
-      answer,
-    };
-
-    dispatch({ type: "selectAnswer", payload: newAnswer });
-  }
-
-  function handleSubmitAnswers() {
-    dispatch({ type: "submitQuiz" });
-
-    navigate(`/quiz/results`);
-
-    console.log(totalScore);
-  }
-
-  function handleRedirectToEdit() {
-    navigate(-1);
-  }
-
-  function handleBeforeUnload(e) {
-    e.preventDefault();
-
-    dispatch({});
-
-    e.returnValue = true;
-  }
-
-  window.addEventListener("beforeunload", handleBeforeUnload);
-
-  if (currentQuiz === null) return;
+  const currentIndex = 0;
+  const totalQuestions = 10;
+  const progress = ((currentIndex + 1) / totalQuestions) * 100;
 
   return (
-    <div className=" relative grid justify-items-center h-full bg-main-500 px-48 py-8  bg-gray-50">
-      <div className="lg:max-w-1/2">
-        <div className="self-end">
-          {IsTryOut && (
-            <Button
-              onClick={handleRedirectToEdit}
-              additionalStyles={"rounded-3xl bg-grey p-3"}
-              tooltip={"Voltar a edição"}
-              tooltipPosition={"left"}>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="size-6 group-hover/button:text-main">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M15.75 5.25v13.5m-7.5-13.5v13.5"
-                />
-              </svg>
-            </Button>
-          )}
+    <main className="relative min-h-screen overflow-hidden  text-dark">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.25),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.18),transparent_35%)]" />
+
+      <section className="relative z-10 mx-auto flex min-h-screen w-full max-w-5xl flex-col px-6 py-8">
+        <header className="mb-10">
+          <div className="mb-4 flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm text-slate-400">Quiz em andamento</p>
+              <h1 className="text-xl font-semibold">React Fundamentals</h1>
+            </div>
+
+            <Timer quizTime={125} />
+          </div>
+
+          <div className="h-2 overflow-hidden rounded-full bg-white/10">
+            <motion.div
+              className="h-full rounded-full bg-gradient-to-r from-main via-accent to-sky-400"
+              initial={{ width: 0 }}  
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.4 }}
+            />
+          </div>
+
+          <p className="mt-3 text-right text-sm text-slate-400">
+            {currentIndex + 1} de {totalQuestions}
+          </p>
+        </header>
+
+        <div className="flex flex-1 items-center justify-center">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentIndex}
+              initial={{ opacity: 0, y: 24, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -24, scale: 0.98 }}
+              transition={{ duration: 0.35 }}
+              className="w-full"
+            >
+              <QuestionItem />
+            </motion.div>
+          </AnimatePresence>
         </div>
 
-        <div className="grid grid-cols-1 gap-y-8 px-4">
-          <QuizMenu />
-          <QuizNav />
-        </div>
-
-        <div className="text-center mx-4">
-          <h3 className="mt-12 mb-auto">{curQuestion?.description}</h3>
-          <ul className=" mt-18 flex flex-col gap-3">
-            {curQuestion?.answers
-              .sort((a, b) => a.order - b.order)
-              .map((answer) => (
-                <li
-                  className={` ${
-                    selectedAnswer?.answer.id === answer.id
-                      ? "border-primary"
-                      : ""
-                  } cursor-pointer flex items-center gap-2 px-4 py-5 border-[1px] bg-white rounded-2xl text-start`}
-                  key={answer.id}
-                  onClick={() => handleSelectAnswer(answer)}>
-                  <AnimatedCheckbox
-                    checked={selectedAnswer?.answer.id === answer.id}
-                    className={`${
-                      selectedAnswer?.answer.id === answer.id
-                        ? "bg-primary"
-                        : ""
-                    }  transition-colors `}
-                  />
-                  {answer.content}
-                </li>
-              ))}
-          </ul>
-        </div>
-        <footer className="flex justify-between px-4 py-8 mt-12 w-full border-t-[1.55px] border-grey bottom-0 rounded-xl">
-          <Button
-            styles={"alternate"}
-            additionalStyles={`px-4 py-1.5 ${
-              isFirst ? "pointer-events-none opacity-50" : ""
-            }`}
-            onClick={handlePreviousQuestion}>
-            Anterior
-          </Button>
-
-          {isLast ? (
-            <Button
-              styles={"standard"}
-              disabled={!allAnswersChecked}
-              additionalStyles={`px-4 py-1.5`}
-              tooltip={
-                !allAnswersChecked ? "Falta responder algumas perguntas!" : ""
-              }
-              onClick={handleSubmitAnswers}>
-              Concluir
-            </Button>
-          ) : (
-            <Button
-              styles={"standard"}
-              additionalStyles={`px-4 py-1.5 ${
-                isLast ? "pointer-events-none opacity-50" : ""
-              }`}
-              onClick={handleNextQuestion}>
-              Próxima
-            </Button>
-          )}
-        </footer>
-      </div>
-    </div>
+        <QuizNav />
+      </section>
+    </main>
   );
 }
 
 export async function loader({ params }) {
   const { quizId, questionId } = params;
-  const result = await fetchQuiz(quizId);
-
-  if (!result) throw new Response("Erro ao carregar o quiz", { status: 404 });
-
-  const questions = await result?.questions;
-  if (!questions || !questionId) {
-    throw new Response("Questão não encontrada", { status: 404 });
-  }
-  return {
-    result,
-    questionId,
-  };
+  
+  console.log(quizId, questionId)
+ 
 }
