@@ -1,5 +1,4 @@
 import { useQuizzes } from "@/contexts/QuizzesContext";
-import { useBuilder } from "../contexts/BuilderContext";
 import AutoSave from "./AutoSave";
 import Button from "./Button";
 import { useAuth } from "@/contexts/AuthContext";

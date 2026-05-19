@@ -1,13 +1,13 @@
 import { useLocation, useNavigate } from "react-router";
 import arrowBack from "../assets/arrow-back.svg"
-import { useBuilder } from "../contexts/BuilderContext";
+import { useBuilderStore } from "../store/builderStore";
 
 export default function BackLink() {
   // mabanque
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { dispatch } = useBuilder();
+  const resetBuilder = useBuilderStore((s) => s.resetBuilder);
 
   const isInQuiz = location.pathname
     .split("/")
@@ -15,7 +15,7 @@ export default function BackLink() {
 
   function handleNavigate() {
     navigate(-1, { replace: true, preventScrollReset: true });
-    dispatch({ type: "resetBuilder" });
+    resetBuilder();
   }
 
   if (location.pathname !== "/")

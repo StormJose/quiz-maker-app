@@ -1,5 +1,5 @@
 import { Switch } from "@/components/ui/switch";
-import { useBuilder } from "@/contexts/BuilderContext";
+import { useBuilder } from "@/store/builderStore";
 import { useUnsavedChanges } from "../../hooks/useUnsavedChanges.tsx";
 import Button from "@/ui/Button";
 import { useEffect, useState } from "react";

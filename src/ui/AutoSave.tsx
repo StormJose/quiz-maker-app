@@ -1,8 +1,8 @@
 import { FileCheck2, LoaderCircleIcon } from "lucide-react";
-import { useBuilder } from "../contexts/BuilderContext";
+import { useBuilderStore } from "../store/builderStore";
 
 function AutoSave() {
-  const { draftStatus } = useBuilder();
+  const draftStatus = useBuilderStore((s) => s.draftStatus);
 
   if (draftStatus === "Saving")
     return <LoaderCircleIcon className="text-primary animate-spin" />;
