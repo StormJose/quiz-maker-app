@@ -1,7 +1,7 @@
 
 import { Outlet } from "react-router"
 import Sidebar from "./sidebar"
-import { useBuilder } from "@/contexts/BuilderContext"
+import { useBuilder } from "@/store/builderStore"
 import Spinner from "@/ui/Spinner";
 import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 import Button from "@/ui/Button";
