@@ -25,27 +25,23 @@ import Settings from "./features/users/settings";
 const routes = [
   {
     path: "/",
-    name: "Home",
     element: <Home />,
   },
   {
     path: "/quizzes",
-    name: "Quizzes",
     element: <AllQuizzes />,
     loader: allQuizzesLoader,
-    ErrorElement: <ErrorBoundary />,
+    errorElement: <ErrorBoundary />,
   },
   {
     path: "/quizzes/:quizId",
-    name: "Quiz",
     element: <Quiz />,
-    ErrorElement: <ErrorBoundary />,
+    errorElement: <ErrorBoundary />,
     loader: quizLoader,
   },
 
   {
     path: "/quiz/new",
-    name: "New Quiz",
     id: "new-quiz",
     element: <BuilderLayout />,
     loader: newQuizLoader,
@@ -53,27 +49,23 @@ const routes = [
     children: [
       {
         path: "/",
-        name: "New Quiz - Builder",
         element: <NewBuilder />,
-        ErrorElement: <ErrorBoundary />,
+        errorElement: <ErrorBoundary />,
       },
       {
         path: "settings",
-        name: "New Quiz - Settings",
         element: <QuizSettings />,
-        ErrorElement: <ErrorBoundary />,
+        errorElement: <ErrorBoundary />,
       },
       {
         path: "preview",
-        name: "New Quiz - Builder",
         element: <Preview />,
-        ErrorElement: <ErrorBoundary />,
+        errorElement: <ErrorBoundary />,
       },
     ],
   },
   {
     path: "/quiz/:quizId/edit",
-    name: "Edit Quiz",
     id: "edit-quiz",
     element: <BuilderLayout />,
     loader: editQuizLoader,
@@ -81,43 +73,36 @@ const routes = [
     children: [
       {
         path: "/",
-        name: "Edit Quiz - Builder",
         element: <NewBuilder />,
-        ErrorElement: <ErrorBoundary />,
+        errorElement: <ErrorBoundary />,
       },
       {
         path: "settings",
-        name: "Edit Quiz - Settings",
         element: <QuizSettings />,
-        ErrorElement: <ErrorBoundary />,
+        errorElement: <ErrorBoundary />,
       },
       {
         path: "preview",
-        name: "Edit Quiz - Builder",
         element: <Preview />,
-        ErrorElement: <ErrorBoundary />,
+        errorElement: <ErrorBoundary />,
       },
     ],
   },
 
   {
     path: "/quiz/results",
-    name: "Quiz Results",
     element: <QuizResults />,
   },
-   {
+  {
     path: "/settings",
     element: <Settings />,
   },
-  // Add to your router configuration
-{
-  path: "/profile/:userId",
-  // element: <ProfilePage />,
-},
-{
-  path: "/profile/settings",
-  // element: <ProfileSettings />,
-}
+  {
+    path: "/profile/:userId",
+  },
+  {
+    path: "/profile/settings",
+  },
 ];
 
 export const router = createBrowserRouter([
@@ -129,13 +114,13 @@ export const router = createBrowserRouter([
       path: route.path === "/" ? undefined : route.path,
       element: route.element,
       index: route.path === "/",
-      // errorElement: route.errorElement,
-      action: route?.action,
+      errorElement: route.errorElement,
       loader: route.loader,
-      children: route.children?.map((route) => ({
-        path: route.path === "/" ? undefined : route.path,
-        element: route.element,
-        index: route.path === "/",
+      children: route.children?.map((child) => ({
+        path: child.path === "/" ? undefined : child.path,
+        element: child.element,
+        index: child.path === "/",
+        errorElement: child.errorElement,
       })),
     })),
   },

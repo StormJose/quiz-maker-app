@@ -1,5 +1,5 @@
 import { redirect, useNavigate } from "react-router";
-import { useQuizzes } from "../../contexts/QuizzesContext";
+import { useQuizzes } from "../../store/quizzesStore";
 import Button from "../../ui/Button";
 import { useEffect } from "react";
 

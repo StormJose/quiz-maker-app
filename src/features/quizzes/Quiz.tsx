@@ -1,20 +1,16 @@
 import { useEffect } from "react";
-import { useQuizzes } from "../../contexts/QuizzesContext.js";
+import { useQuizzes } from "../../store/quizzesStore";
 import Button from "../../ui/Button";
 import { useLoaderData, useSearchParams } from "react-router";
 import { fetchQuiz } from "@/api/supabaseApi.js";
 
 export default function Quiz() {
   const data = useLoaderData();
-  const { status, currentQuiz, dispatch } = useQuizzes();
+  const { status, currentQuiz, setCurrentQuiz, startQuiz } = useQuizzes();
 
   useEffect(() => {
-    function loadCurrentQuiz() {
-      dispatch({ type: "setCurrentQuiz", payload: data });
-    }
-
-    loadCurrentQuiz();
-  }, [data, dispatch]);
+    setCurrentQuiz(data);
+  }, [data]);
 
   return (
     <div className=" flex justify-between px-4 py-10">
@@ -24,7 +20,7 @@ export default function Quiz() {
       </div>
       <div>
         <Button
-          onClick={() => dispatch({ type: "startQuiz" })}
+          onClick={startQuiz}
           styles={"standard"}
           to={`questions/0`}>
           Iniciar quiz

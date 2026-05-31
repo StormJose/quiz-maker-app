@@ -1,11 +1,12 @@
+import { Question } from "./questions";
 
 export interface Quiz {
   quizId: string;
   title: string;
   description: string;
-  published: boolean;
+  questions: Question[];
   enableTimer: boolean;
   shuffle: boolean;
   customScore: boolean;
-  realTimeAnswer: boolean;
+  published: boolean;
 }

@@ -4,7 +4,7 @@ import { QuestionType } from "./raw/questions";
 export interface Question { 
   questionId: string;
   description: string;
-  order: boolean;
+  order: number;
   pointsRewarded: number;
   type: QuestionType;
   answers: Answer[]

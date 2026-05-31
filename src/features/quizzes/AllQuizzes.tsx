@@ -5,7 +5,7 @@ import {
   useNavigate,
   useNavigation,
 } from "react-router";
-import { useQuizzes } from "../../contexts/QuizzesContext";
+import { useQuizzes } from "../../store/quizzesStore";
 import { motion } from "framer-motion";
 import QuizItem from "./QuizItem";
 import Button from "../../ui/Button";
@@ -19,10 +19,10 @@ export default function AllQuizzes() {
 
   const quizzes = useLoaderData();
 
-  const { dispatch } = useQuizzes();
+  const { setQuizzes } = useQuizzes();
 
   useEffect(() => {
-    dispatch({ type: "setDataLoaded", payload: quizzes });
+    setQuizzes(quizzes);
   }, [quizzes]);
 
   return (

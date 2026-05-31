@@ -9,19 +9,19 @@ import {
   DialogOverlay,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useQuizzes } from "@/contexts/QuizzesContext";
+import { useQuizzes } from "@/store/quizzesStore";
 
 export default function WarningDialog({open, dialogLabel, dialogMessage, onDismiss, onClose}) {
- 
-  const {dispatch} = useQuizzes()
+
+  const { closeDialog } = useQuizzes()
 
   function onHandleDismiss() {
-    dispatch({type: "setDialogClose"})
+    closeDialog()
     onDismiss()
   }
 
   function onHandleClose() {
-    dispatch({ type: "setDialogClose" });
+    closeDialog();
     onClose()
   }
 

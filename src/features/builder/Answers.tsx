@@ -1,9 +1,9 @@
-import { useBuilder } from "../../contexts/BuilderContext";
+import { useBuilder } from "@/store/builderStore";
 import Button from "../../ui/Button";
 import Input from "./Input";
 
 export default function Answers() {
-  const { curQuestion, dispatch } = useBuilder();
+  const { curQuestion, updateQuestion } = useBuilder();
 
   async function handleAddAnswer() {
     const order = curQuestion.answers.length + 1;
@@ -20,7 +20,7 @@ export default function Answers() {
       answers: [...curQuestion.answers, newAnswer],
     };
 
-    await dispatch({ type: "updateQuestion", payload: updatedQuestion });
+    updateQuestion(updatedQuestion)
   }
 
   const answers = curQuestion?.answers?.length > 0 ? curQuestion?.answers : [];

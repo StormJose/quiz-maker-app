@@ -1,42 +1,46 @@
-import { useEffect, useState } from "react";
+import { ReactNode, useState } from "react";
 import ButtonDelete from "./ButtonDelete";
-import ButtonAdd from "./ButtonAdd";
-import { useBuilder } from "../../contexts/BuilderContext";
 import AnimatedCheckbox from "@/components/ui/checkbox";
 import { Answer } from "@/types/answers";
 import toast from "react-hot-toast";
+import { useBuilder } from "@/store/builderStore";
+
+
+interface InputProps {
+  item: Answer;
+  active: boolean;
+  listeners: () => void
+}
 
 // TO DO: Apply drag n' drop functionality to the answers
-export default function Input({ item, active, listeners }) {
-  const { curQuestion, handleDeleteAnswer, dispatch } = useBuilder();
+export default function Input({ item, active, listeners }: InputProps) {
+  const { curQuestion, updateQuestion, handleDeleteAnswer, setCorrectAnswer } = useBuilder();
   const [input, setInput] = useState<string>(item.content ?? "");
 
-  // For now, it is not possible to undo the changes after the input loses focus because
-  // the component wouldn't be able to save the changes.
-  // useEffect(() => {
-  //   setInput(item.content);
-  // }, [input]);
-
-  function handleChangeAnswer(e) {
+  function handleChangeAnswer(e: React.ChangeEvent<HTMLInputElement>) {
     setInput(e.target.value);
   }
 
   function handleConfirmChanges() {
-    const updatedAnswers = curQuestion.answers.map((answer) =>
+    if (!curQuestion) return
+
+    const updatedAnswers = curQuestion?.answers.map((answer) =>
       answer.answerId === item.answerId
         ? { ...answer, content: input }
         : answer,
-    );
+      );
+      
+      const updatedQuestion = {
+        ...curQuestion,
+        answers: updatedAnswers,
+      };
 
-    const updatedQuestion = {
-      ...curQuestion,
-      answers: updatedAnswers,
-    };
-
-    dispatch({ type: "updateQuestion", payload: updatedQuestion });
+    updateQuestion(updatedQuestion)
   }
 
   function handleCorrectAnswer(answer: Answer) {
+
+    if (!curQuestion) return
     const updatedAnswers = curQuestion?.answers.map((a: Answer) =>
       answer.answerId === a.answerId && a.correctAnswer === false
         ? { ...a, correctAnswer: true }
@@ -44,12 +48,12 @@ export default function Input({ item, active, listeners }) {
     );
 
     const payload = {
-      questionId: curQuestion.questionId,
+      questionId: curQuestion?.questionId,
       answers: updatedAnswers,
     };
     console.log(payload.answers);
 
-    dispatch({ type: "setCorrectAnswer", payload });
+    setCorrectAnswer(payload)
   }
 
   async function handleDelete(id: string) {

@@ -1,18 +1,22 @@
 
-import { Outlet } from "react-router"
+import { Outlet, Params, useLoaderData, useNavigate, useNavigation } from "react-router"
+import { fetchNumOfQuizzes, fetchQuiz, fetchQuizzes } from "@/api/supabaseApi";
 import Sidebar from "./sidebar"
 import { useBuilder } from "@/store/builderStore"
-import Spinner from "@/ui/Spinner";
-import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
-import Button from "@/ui/Button";
+import { useQuizzes } from "@/store/quizzesStore";
+import { useWarningDialog } from "@/hooks/useWarningDialog";
+import { useEffect } from "react";
+import BuilderSkeleton from "@/skeletons/BuilderSkeleton";
+import { QuizItemSkeleton } from "@/skeletons/quiz-item-skeleton";
+import { getCurrentUser } from "@/auth/auth";
+
 
 export default function BuilderLayout() {
-  const { quizId } = useParams();
   const navigation = useNavigation();
   const navigate = useNavigate();
-  const { existingQuiz, quizzesData, limitReached } = useLoaderData();
-  const { status: quizzesStatus, dispatch: quizzesDispatch } = useQuizzes();
-  const { currentQuiz, dispatch: builderDispatch } = useBuilder();
+  const { existingQuiz, quizzes, limitReached } = useLoaderData();
+  const { openDialog } = useQuizzes();
+  const { status, setCurrentQuiz} = useBuilder();
 
   const { Dialog } = useWarningDialog();
 
@@ -22,30 +26,22 @@ export default function BuilderLayout() {
 
   useEffect(() => {
     if (limitReached) {
-      quizzesDispatch({
-        type: "setDialogOpen",
-        payload: {
-          handler: handleGoBack,
-          dialogLabel: "Limite atingido",
-          dialogMessage:
-            "Você está no limite de rascunhos. Caso deseje criar um novo Quiz, publique pelo menos um dos rascunhos existentes.",
-        },
+      openDialog({
+        handler: handleGoBack,
+        dialogLabel: "Limite atingido",
+        dialogMessage:
+          "Você está no limite de rascunhos. Caso deseje criar um novo Quiz, publique pelo menos um dos rascunhos existentes.",
       });
       return;
     }
-    const action = existingQuiz
-      ? { type: "setCurrentQuiz", payload: existingQuiz }
-      : { type: "setNewQuiz", payload: quizzesData?.length };
-    builderDispatch(action);
-  }, [existingQuiz]);
 
-  const isReady = existingQuiz
-    ? currentQuiz?.quizId === existingQuiz.quizId
-    : currentQuiz?.quizId != null;
+    setCurrentQuiz(existingQuiz, quizzes?.length)
+      
+  }, [existingQuiz?.quizId]);
 
   if (limitReached) return <div>{Dialog};</div>;
-
-  if (!isReady) return <BuilderSkeleton />;
+ 
+  if (status !== "ready") return <BuilderSkeleton />;
 
   return (
     <div
@@ -61,6 +57,7 @@ export default function BuilderLayout() {
             <QuizItemSkeleton />
           </div>
         ) : (
+      
           <Outlet />
         )}
       </div>
@@ -71,29 +68,29 @@ export default function BuilderLayout() {
 
 export async function editQuizLoader({ params }) {
   const { quizId } = params;
+  const { user } = await getCurrentUser();
 
   // quiz
+  const quizzes = user ? await fetchQuizzes(user?.id) : null
   const existingQuiz = await fetchQuiz(quizId);
 
   return {
     existingQuiz,
+    quizzes,
   };
 }
 
 export async function newQuizLoader() {
   // auth
-  const session = await getCurrentUser();
+  const { user } = await getCurrentUser();
   // quiz
-  const numDrafts =
-    (await fetchNumOfQuizzes({
-      column: "published",
-      value: false,
-    })) ?? 0;
+  const quizzes = user ? await fetchQuizzes(user?.id) : null
+  const numDrafts = 
+    await fetchNumOfQuizzes({column: "published", value:  false}) ?? 0;
+
   if (numDrafts >= 3) {
     return { numDrafts, existingQuiz: null, limitReached: true };
   }
 
-  const quizzesData = await fetchQuizzes(session.user.id);
-
-  return { numDrafts, quizzesData, limitReached: false };
+  return { numDrafts, quizzes, limitReached: false };
 }

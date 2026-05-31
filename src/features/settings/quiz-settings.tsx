@@ -1,27 +1,23 @@
-import { useEffect } from "react";
-import { useParams } from "react-router";
 import { Switch } from "@/components/ui/switch";
 import { useBuilder } from "@/store/builderStore";
 import { useUnsavedChanges } from "../../hooks/useUnsavedChanges.tsx";
-import Button from "@/ui/Button";
-import { useEffect, useState } from "react";
-import { useParams } from "react-router";
+import { feedback } from "@/utils/toast-utils.ts";
+import MultiStageButton from "@/ui/multi-stage-button.tsx";
+import { Toaster } from "react-hot-toast";
+
 
 export default function QuizSettings() {
-  const { quizId } = useParams();
-
   const {
     isLoading,
+    status,
     currentQuiz,
     toggleTimer,
     toggleShuffle,
     toggleCustomScore,
-    toggleRealTimeAnswer,
-    handleGetQuiz,
     handleUpsertQuizSettings,
   } = useBuilder();
 
-  const { dirty, Dialog, handleUpdateSettings } = useUnsavedChanges();
+  const { dirty, Dialog, handleUpdateSettings } = useUnsavedChanges(currentQuiz, status);
 
   function handleTimer() {
     toggleTimer();
@@ -31,36 +27,26 @@ export default function QuizSettings() {
     toggleShuffle();
   }
 
-  function handleCustomScore() {
+  function  handleCustomScore() {
     toggleCustomScore();
-  }
-
-  function handleRealTimeAnswer() {
-    toggleRealTimeAnswer();
   }
 
   async function handleSaveChanges() {
     try {
       await handleUpsertQuizSettings(currentQuiz);
 
-      handleUpdateSettings(currentQuiz);
-      feedback.success("Mudanças salvas");
+      handleUpdateSettings({
+        enableTimer: currentQuiz.enableTimer, 
+        shuffle: currentQuiz.shuffle, 
+        customScore: currentQuiz.customScore 
+      });
+      feedback.success("Mudanças salvas", "");
     } catch (error) {
       feedback.error("Erro ao alterar definições");
     }
   }
+  console.log("currentQuiz: ", currentQuiz)
 
-  useEffect(() => {
-    async function loadQuizData() {
-      try {
-        await handleGetQuiz(quizId);
-      } catch (error) {
-        console.error(error);
-      }
-    }
-
-    loadQuizData();
-  }, []);
 
   return (
     <div className="grid gap-y-12">
@@ -72,7 +58,7 @@ export default function QuizSettings() {
           <Switch
             disabled={isLoading}
             onClick={handleCustomScore}
-            checked={currentQuiz?.settings?.customScore}
+            checked={currentQuiz?.customScore}
           />
           <div>
             <h4 className="font-bold text-md">Customizar pontuação</h4>
@@ -86,7 +72,7 @@ export default function QuizSettings() {
           <Switch
             disabled={isLoading}
             onClick={handleTimer}
-            checked={currentQuiz?.settings?.enableTimer}
+            checked={currentQuiz?.enableTimer}
           />
           <div>
             <h4 className="font-bold text-md">Cronômetro</h4>
@@ -95,24 +81,12 @@ export default function QuizSettings() {
             </p>
           </div>
         </div>
-        <div className="grid grid-cols-[0.2fr_2fr] items-center">
-          <Switch
-            disabled={isLoading}
-            onClick={handleRealTimeAnswer}
-            checked={currentQuiz?.settings?.realTimeAnswer}
-          />
-          <div>
-            <h4 className="font-bold text-md">Respostas em Tempo Real</h4>
-            <p className="text-accent-foreground">
-              Permita que os usuários vejam o resultado imediatamente
-            </p>
-          </div>
-        </div>
+     
         <div className="grid grid-cols-[0.2fr_2fr] items-center">
           <Switch
             disabled={isLoading}
             onClick={handleShuffle}
-            checked={currentQuiz?.settings?.shuffle}
+            checked={currentQuiz?.shuffle}
           />
           <div>
             <h4 className="font-bold text-md">Ordem aleatória</h4>
@@ -122,19 +96,12 @@ export default function QuizSettings() {
           </div>
         </div>
 
-        {/* <Button
-          disabled={!dirty}
-          styles={"standard"}
-          additionalStyles={"justify-self-start px-2 py-1.5"}
-          onClick={handleSaveChanges}>
-          Salvar definições
-        </Button> */}
-
-        <MultiStageButton
+        <MultiStageButton    
           disabled={!dirty}
           className="justify-self-start px-2 py-1.5"
           onClick={handleSaveChanges}
           stage={
+          
             isLoading ? "loading" : dirty ? "dirty" : "idle"
           }></MultiStageButton>
       </div>

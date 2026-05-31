@@ -1,29 +1,24 @@
 import { useEffect, useRef, useState } from "react";
-import { useBeforeUnload, useBlocker, useNavigate } from "react-router";
-import { useBuilder } from "../store/builderStore";
+import { useBeforeUnload, useBlocker } from "react-router";
 import UnsavedChangesDialog from "@/ui/unsaved-changes-dialog";
+import { Quiz } from "@/types/quiz";
 
-export function useUnsavedChanges() {
-  const navigate = useNavigate();
-
-  const { status, currentQuiz } = useBuilder()
+export function useUnsavedChanges(currentQuiz: Quiz, status: string) {
   const [showDialog, setShowDialog] = useState(false);
-  // Only load actual initialState when it is ready
+  const nextPathRef = useRef<string | null>(null);
 
   const settings = {
     enableTimer: currentQuiz.enableTimer,
-    realTimeAnswer: currentQuiz.realTimeAnswer,
     shuffle: currentQuiz.shuffle,
     customScore: currentQuiz.customScore,
   };
+
   const [initialSettings, setInitialSettings] = useState(
     status === "ready" ? settings : {},
   );
-  const nextPathRef = useRef(null);
 
   const dirty = JSON.stringify(initialSettings) !== JSON.stringify(settings);
 
-  console.log(dirty);
   useBeforeUnload((e) => {
     e.preventDefault();
     e.returnValue = "";
@@ -49,13 +44,16 @@ export function useUnsavedChanges() {
     console.log(nextPathRef.current)
     setShowDialog(false);
     if (nextPathRef.current) {
-      blocker.proceed()      
+      if (blocker.proceed) {
+
+        blocker.proceed()    
+      }
     
     }
     
   };
 
-  const handleUpdateSettings = (settings) => setInitialSettings(settings)
+  const handleUpdateSettings = (settings: object) => setInitialSettings(settings)
 
   const Dialog = <UnsavedChangesDialog open={showDialog} onHandleStay={handleStay} onHandleLeave={handleLeave} />;
 

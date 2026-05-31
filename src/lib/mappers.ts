@@ -2,6 +2,7 @@ import { Answer } from "@/types/answers";
 import { Question } from "@/types/questions";
 import { FullQuizView } from "@/types/full-quiz-view";
 import { RawFullQuizView } from "@/types/raw/full-quiz-view";
+import { Quiz } from "@/types/quiz";
 
 export function normalizeQuiz(raw: RawFullQuizView): FullQuizView {
   return {
@@ -55,7 +56,4 @@ export const toDbQuiz = (quiz: Quiz, userId: string) => ({
   quiz_id: quiz.quizId,
   user_id: userId,
   title: quiz.title,
-  custom_score: quiz.customScore,
-  enable_timer: quiz.enableTimer,
-  shuffle: quiz.shuffle,
 });

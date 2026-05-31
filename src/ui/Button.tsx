@@ -1,9 +1,23 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2Icon } from "lucide-react";
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 import { Link } from "react-router";
 
 type Styles = "standard" | "alternate" | "cancel";
+
+interface ButtonProps {
+  children: ReactNode;
+  to?: string;
+  onClick: () => void;
+  styles: Styles;
+  type: "button" | "submit" | "reset" | undefined;
+  isLoading?: boolean;
+  disabled?: boolean;
+  additionalStyles?: string;
+  tooltip?: string;
+  tooltipPosition?: string; 
+  listeners?: () => void
+}
 
 export default function Button({
   children,
@@ -17,9 +31,18 @@ export default function Button({
   tooltip,
   tooltipPosition,
   listeners,
-}) {
-  const [ripples, setRipples] = useState([]);
+}: ButtonProps) {
 
+  type RipplesType = {
+    id: number;
+    size: number
+    x: number;
+    y: number
+
+  }
+
+  const [ripples, setRipples] = useState<RipplesType[]>([]);
+  console.log(ripples)
   const standard = `bg-main text-gray-100 hover:bg-indigo-400 hover:no-underline`;
   const alternate = `bg-gray text-gray-950  hover:bg-neutral-200 `;
   const cancel = `bg-red-300 text-red-600  hover:bg-red-200 `;
@@ -32,7 +55,8 @@ export default function Button({
 
   const currentTypeStyle = typeStyles[styles] || "";
 
-  function handleClick(e) {
+  
+  function handleClick(e: React.MouseEvent<HTMLAnchorElement>) {
     const rect = e.currentTarget.getBoundingClientRect();
     const size = Math.max(rect.width, rect.height);
     const x = e.clientX - rect.left - size / 2;
@@ -70,7 +94,7 @@ export default function Button({
           exit={{ opacity: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
           onAnimationComplete={() =>
-            setRipples((prev) => prev.filter((r) => r.id !== ripple.id))
+            setRipples((prev) => prev.filter((r) => r?.id !== ripple?.id))
           }
           className="absolute rounded-full bg-main pointer-events-none"
         />
@@ -105,9 +129,9 @@ export default function Button({
     return (
       <Link
         {...listeners}
-        onClick={(e) => {
+        onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
           handleClick(e);
-          if (onClick) onClick(e);
+          if (onClick) onClick();
         }}
         to={to}
         className={`${currentTypeStyle}   font-semibold hover:cursor-pointer relative overflow-hidden rounded-full transition-all 

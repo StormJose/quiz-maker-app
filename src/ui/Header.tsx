@@ -1,7 +1,13 @@
-import { useQuizzes } from "@/contexts/QuizzesContext";
-import AutoSave from "./AutoSave";
-import Button from "./Button";
+// import * as NavigationMenu from "@radix-ui/react-dropdown-menu";
+import * as NavigationMenu from "@radix-ui/react-navigation-menu";
+import * as Avatar from "@radix-ui/react-avatar";
 import { useAuth } from "@/contexts/AuthContext";
+import { MenuList } from "@/types/menus";
+import { LogOut, Settings, User } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router";
+import profile from "../assets/profile.webp"
+
 
 export default function Header() {
   const navigate = useNavigate();
@@ -79,8 +85,6 @@ export default function Header() {
                     </NavigationMenu.Content>
                   </NavigationMenu.Item>
                 </NavigationMenu.List>
-
-                {/* Required Radix viewport — positions the floating panel */}
                 <NavigationMenu.Viewport style={{ position: "relative" }} />
               </NavigationMenu.Root>
             </li>

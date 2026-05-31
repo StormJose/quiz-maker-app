@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate } from "react-router";
 import Button from "../../ui/Button";
-import { useQuizzes } from "../../contexts/QuizzesContext";
+import { useQuizzes } from "../../store/quizzesStore";
 import { Ellipsis, Pen, Timer } from "lucide-react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { Heading } from "@/ui/Heading";
@@ -9,7 +9,7 @@ import { useState } from "react";
 
 export default function QuizItem({ quiz }) {
   const navigate = useNavigate();
-  const { dispatch, handleDeleteQuiz } = useQuizzes();
+  const { setConfirmAction, handleDeleteQuiz } = useQuizzes();
   const [selectedCard, setSelectedCard] = useState(false);
   const numQuestions = quiz.questions.length;
   return (
@@ -102,12 +102,9 @@ export default function QuizItem({ quiz }) {
                 </DropdownMenu.Item>
                 <DropdownMenu.Item
                   onSelect={() =>
-                    dispatch({
-                      type: "confirmAction",
-                      payload: {
-                        quizId: quiz.quizId,
-                        handler: handleDeleteQuiz,
-                      },
+                    setConfirmAction({
+                      quizId: quiz.quizId,
+                      handler: handleDeleteQuiz,
                     })
                   }
                   className="text-gra text-sm px-3 py-4  cursor-pointer

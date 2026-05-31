@@ -1,11 +1,11 @@
-import { useQuizzes } from "@/contexts/QuizzesContext";
+import { useQuizzes } from "@/store/quizzesStore";
 import WarningDialog from "@/ui/Dialog";
 import { useBeforeUnload, useBlocker } from "react-router";
 
 
 
 export function useWarningDialog() {
-  const { dispatch, showDialog, dialogLabel, dialogMessage, confirmHandler } =
+  const { closeDialog, showDialog, dialogLabel, dialogMessage, confirmHandler } =
     useQuizzes();
 
   // console.log(confirmHandler, dialogMessage)
@@ -21,7 +21,7 @@ export function useWarningDialog() {
   );
 
   function onHandleClose() {
-    dispatch({ type: "setDialogClose" });
+    closeDialog();
 
     setTimeout(() => {
       confirmHandler?.();

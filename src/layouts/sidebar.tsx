@@ -1,4 +1,4 @@
-import { useBuilder } from "@/contexts/BuilderContext";
+import { useBuilder } from "@/store/builderStore";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import {
   FlaskConical,
@@ -8,10 +8,9 @@ import {
   Settings,
 } from "lucide-react";
 import { useState } from "react";
-import { NavLink, useLocation, useNavigate, useParams } from "react-router";
+import { NavLink, useLocation, useParams } from "react-router";
 
 export default function Sidebar() {
-  const navigate = useNavigate();
   const location = useLocation();
   const { quizId } = useParams();
   const { status, currentQuiz } = useBuilder();
@@ -68,10 +67,7 @@ export default function Sidebar() {
               <h2 className="font-bold text-2xl mb-2 whitespace-nowrap">
                 Quiz Builder
               </h2>
-              {/* <p className="text-sidebar-accent-foreground">
-                Crie seu quiz com nossa poderosa ferramenta de criação e
-                edição
-              </p> */}
+        
             </>
           )}
         </div>

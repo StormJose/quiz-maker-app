@@ -1,39 +1,43 @@
+import { Quiz } from "@/types/quiz";
 import { useEffect, useState, useRef, useCallback } from "react";
-import { useBuilder } from "../store/builderStore";
 
-const areEqual = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+const areEqual = (a: Quiz, b: Quiz) => JSON.stringify(a) === JSON.stringify(b);
 
-export function useAutoSaveQuiz(quizData = {}, onRestore, status, persist, handleInsertQuiz, onSaveDraft) {
-  const [draft, setDraft] = useState(null);
+
+
+export function useAutoSaveQuiz(quizData: Quiz, 
+  onRestore: () => void, 
+  status: string, 
+  persist: boolean, 
+  handleInsertQuiz: (quizData: Quiz) => void, 
+  onSaveDraft: () => void): {
+    savedDraft: string | null, 
+    clearDraft: () => void} {
+  const [draft, setDraft] = useState<Quiz | null>(null);
   const [hasRestored, setHasRestored] = useState(false);
   const isOnline = navigator.onLine;
-  const lastSyncedRef = useRef(null);
-  const hasSyncedRef = useRef(false);
+  const lastSyncedRef = useRef<string| null>(null);
 
-  const { draftStatus, lastSynced, persist, handleInsertQuiz, saveDraft } =
-    useBuilder();
-
-  const quizKey = `quiz_draft_${quizData?.id}`;
+  const quizKey = `quiz_draft_${quizData?.quizId}`;
   const savedDraft = localStorage.getItem(quizKey);
   useEffect(() => {
     if (status !== "ready" || hasRestored) return;
 
     if (savedDraft) {
       const parsed = JSON.parse(savedDraft);
-      onRestore(parsed);
-      setDraft(parsed);
+      onRestore();
+      setDraft(parsed); 
+      onSaveDraft();
       setHasRestored(true);
-
-      saveDraft(isOnline ? "Saving" : "Offline");
     } else {
       console.log("Nenhum draft encontrado, inicializando um novo...");
+      setHasRestored(true);
     }
   }, [quizKey, status, hasRestored]);
 
   /////////////////////////////////////////////////
   useEffect(() => {
-    if (status !== "ready" || (!hasRestored && areEqual(quizData, draft)))
-      return;
+    if (status !== "ready" || !hasRestored) return;
 
     const timeout = setTimeout(async () => {
         const newDraftString = JSON.stringify(quizData);
@@ -42,7 +46,7 @@ export function useAutoSaveQuiz(quizData = {}, onRestore, status, persist, handl
     }, 1000);
   
     setDraft(quizData);
-    saveDraft(isOnline ? "Saving" : "Offline");
+    onSaveDraft();
     setHasRestored(true);
     return () => clearTimeout(timeout);
     
@@ -51,21 +55,19 @@ export function useAutoSaveQuiz(quizData = {}, onRestore, status, persist, handl
   ///////////////////////////////////////////////////
   useEffect(() => {    
     if (status !== "ready" || !draft || !hasRestored || !isOnline) return;
-
     if (areEqual(draft, JSON.parse(lastSyncedRef.current || "{}"))) return;
-
     const timeout = setTimeout(async () => {
       try {
-        if (draft.quizId && persist) {
+        if (draft?.quizId && persist) {
 
           await handleInsertQuiz(draft);
           lastSyncedRef.current = JSON.stringify(draft);
         }
       } catch (error) {
         console.error("Erro ao salvar draft remotamente:", error);
-        saveDraft("Offline");
+        onSaveDraft();
       } finally {
-        saveDraft("Saved");
+        onSaveDraft();
       }
     }, 1000);
 
@@ -78,6 +80,7 @@ export function useAutoSaveQuiz(quizData = {}, onRestore, status, persist, handl
     localStorage.removeItem(quizKey);
   }, [quizKey]);
   return {
+    savedDraft,
     clearDraft,
   };
 }

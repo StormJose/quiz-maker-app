@@ -9,8 +9,13 @@ import {
 } from "@/components/ui/dialog";
 
 
-export default function UnsavedChangesDialog({open, onHandleStay, onHandleLeave}) {
+interface UnsavedChangesDialogProps {
+  open: boolean;
+  onHandleStay: () => void;
+  onHandleLeave: () => void;
+}
 
+export default function UnsavedChangesDialog({open, onHandleStay, onHandleLeave}: UnsavedChangesDialogProps) {
   console.log(open)
   return (
     <Dialog open={open}>
@@ -23,10 +28,10 @@ export default function UnsavedChangesDialog({open, onHandleStay, onHandleLeave}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="flex justify-center items-center gap-2">
-          <Button styles={"standard"} onClick={onHandleStay} additionalStyles={"px-4 py-1.5"}>
+          <Button type="button" styles={"standard"} onClick={onHandleStay} additionalStyles={"px-4 py-1.5"}>
             Cancelar
           </Button>
-          <Button onClick={onHandleLeave} additionalStyles={"px-4 py-1.5"}>Sair</Button>
+          <Button type="button" styles="alternate" onClick={onHandleLeave} additionalStyles={"px-4 py-1.5"}>Sair</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

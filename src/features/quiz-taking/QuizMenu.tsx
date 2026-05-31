@@ -3,7 +3,7 @@ import { useState } from 'react';
 import Button from '../../ui/Button';
 import Timer from './Timer';
 import { useNavigate } from 'react-router';
-import { useQuizzes } from '@/contexts/QuizzesContext';
+import { useQuizzes } from '@/store/quizzesStore';
 
 
 
@@ -11,7 +11,7 @@ import { useQuizzes } from '@/contexts/QuizzesContext';
 export default function QuizMenu() {
 
 
-    const { dispatch, currentQuiz } = useQuizzes();
+    const { resetQuiz, currentQuiz } = useQuizzes();
     const navigate = useNavigate()
     const [open, setOpen] = useState(false);
     function handleOpenMenu() {
@@ -20,7 +20,7 @@ export default function QuizMenu() {
     }
 
     function handleLeaveQuiz() {
-      dispatch({ type: "resetQuiz" });
+      resetQuiz();
       navigate(`/quizzes`);
     }
     return (

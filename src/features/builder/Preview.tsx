@@ -1,24 +1,17 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router";
 import { useAutoSaveQuiz } from "../../hooks/useAutoSave"
-import { useQuizzes } from "../../contexts/QuizzesContext";
-import { useBuilder } from "../../contexts/BuilderContext";
-import toast, { Toaster } from "react-hot-toast";
-import QuestionsTrack from "./QuestionsTrack";
 import BuilderSkeleton from "@/skeletons/BuilderSkeleton";
-import InQuiz from "../quiz-taking/InQuiz";
 import Button from "@/ui/Button";
+import { useBuilder } from "@/store/builderStore";
 
 export default function Preview() {
-  const navigate = useNavigate();
-  const location = useLocation();
   const { quizId } = useParams();
   const [curQuestion, setCurQuestion] = useState(0)
 
   const {
     isLoading,
     status,
-    title,
     currentQuiz,
     handleNumOfQuizzes,
     handleNewQuiz,

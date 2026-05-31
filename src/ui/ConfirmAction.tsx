@@ -1,4 +1,4 @@
-import { useQuizzes } from "../contexts/QuizzesContext";
+import { useQuizzes } from "../store/quizzesStore";
 import Button from "./Button";
 import {
   Dialog,
@@ -11,14 +11,14 @@ import {
 } from "@/components/ui/dialog";
 
 export default function ConfirmAction() {
-  const { confirmData, confirmHandler, dispatch } = useQuizzes();
+  const { confirmData, confirmHandler, resetConfirmAction } = useQuizzes();
   async function handleConfirmAction() {
     await confirmHandler(confirmData);
-    dispatch({ type: "resetAction" });
+    resetConfirmAction();
   }
 
   function handleCancelAction() {
-    dispatch({ type: "resetAction" });
+    resetConfirmAction();
   }
 
   return (

@@ -1,6 +1,18 @@
-import { useState } from "react";
+import { ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Circle, Moon, Sparkles } from "lucide-react";
+import { Circle, Moon } from "lucide-react";
+
+
+type Stage = "idle" | "loading" | "dirty";
+
+interface MultiStageButtonProps {
+  children?: ReactNode;
+  stage: Stage;
+  className: string;
+  disabled?: boolean;
+  props?: object
+  onClick: () => void;
+}
 
 export default function MultiStageButton({
 children,
@@ -8,15 +20,14 @@ children,
   className = "",
   disabled,
   ...props
-}) {
+}: MultiStageButtonProps) {
 
   const isLoading = stage === "loading"
   const isDirty = stage === "dirty"
   const isDone = stage != "dirty"
 
-console.log(isLoading)
   return (
-    <motion.div
+    <motion.button
       disabled={disabled}
       {...props}
       className={`relative cursor-pointer flex items-center gap-2 px-3 py-1.5 rounded-full border border-gray-300 bg-primary text-white hover:bg-indigo-400 ${
@@ -26,21 +37,6 @@ console.log(isLoading)
       ${className}`}
       layout
       transition={{ layout: { duration: 0.25, ease: "easeOut" } }}>
-      {/* Shared bubble background */}
-      {/* <AnimatePresence>
-        {(isLoading || isDone) && (
-          <motion.div
-            layoutId="badgeBubble"
-            className="absolute inset-0 bg-primary/20 rounded-full"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          />
-        )}
-      </AnimatePresence> */}
-
-      {/* Icon when active */}
-
       {/* Dirty state */}
       <motion.div
         layout
@@ -83,6 +79,6 @@ console.log(isLoading)
         {stage === "dirty" && "Salvar alterações"}
         {isLoading && "Salvando alterações..."}
       </motion.span>
-    </motion.div>
+    </motion.button>
   );
 }

@@ -2,31 +2,17 @@ import { create } from "zustand";
 import {
   deleteAnswer,
   deleteQuestion,
-  fetchNumOfQuizzes,
-  fetchQuiz,
   insertQuiz,
   upsertQuizSettings,
 } from "../api/supabaseApi.js";
+import { Answer } from "@/types/answers";
+import { Quiz } from "@/types/quiz";
+import { Question } from "@/types/questions";
+import { getInitialState } from "@dnd-kit/core/dist/store/reducer.js";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 export type DraftStatus = "Saving" | "Saved" | "Offline";
 export type BuilderStatus = "pending" | "ready";
-
-export interface Answer {
-  id: number | string;
-  content: string;
-  correct_answer: boolean;
-  order?: number;
-}
-
-export interface Question {
-  id: number | string;
-  description: string;
-  answers: Answer[];
-  order: number;
-  type: "multiple_choice" | "true_false";
-}
 
 export interface QuizSettings {
   enableTimer: boolean;
@@ -34,14 +20,6 @@ export interface QuizSettings {
   customScore: boolean;
 }
 
-export interface Quiz {
-  id: string | null;
-  title: string;
-  description: string;
-  questions: Question[];
-  settings: QuizSettings;
-  published: boolean;
-}
 
 interface BuilderState {
   isLoading: boolean;
@@ -51,7 +29,7 @@ interface BuilderState {
   lastSynced: string | null;
   numQuizzes: number | null;
   currentQuiz: Quiz;
-  curQuestion: Question | Record<string, never>;
+  curQuestion: Question | null;
   error: unknown | null;
   persist: boolean;
 }
@@ -61,8 +39,7 @@ interface BuilderActions {
   setLoading: (loading: boolean) => void;
 
   // Quiz-level
-  setNewQuiz: (numQuizzes: number) => void;
-  setCurrentQuiz: (quiz: Quiz) => void;
+  setCurrentQuiz: (quiz: Quiz | undefined, numQuizzes: number | null) => void;
   setCurQuestion: (question: Question) => void;
   setTitle: (title: string) => void;
 
@@ -71,7 +48,7 @@ interface BuilderActions {
   addTrueOrFalseQuestion: () => void;
   cloneQuestion: () => void;
   updateQuestion: (question: Question) => void;
-  deleteQuestion: (questionId: number | string) => void;
+  deleteQuestion: (questionId: string) => void;
   deleteAnswer: (answerId: number | string) => void;
 
   // Reordering
@@ -102,22 +79,56 @@ interface BuilderActions {
   resetBuilder: () => void;
 
   // Async thunks
-  handleNumOfQuizzes: (filters?: {
-    column: string;
-    value: unknown;
-  }) => Promise<number>;
-  handleNewQuiz: () => Promise<void>;
-  handleGetQuiz: (quizId: string) => Promise<Quiz | undefined>;
+  // handleNewQuiz: () => Promise<void>;
+  // handleGetQuiz: (quizId: string) => Promise<Quiz | undefined>;
   handleInsertQuiz: (quiz: Quiz) => Promise<unknown>;
   handleUpsertQuizSettings: (quiz: Quiz) => Promise<unknown>;
-  handleDeleteQuestion: (questionId: number | string) => Promise<unknown>;
-  handleDeleteAnswer: (answerId: number | string) => Promise<void>;
+  handleDeleteQuestion: (questionId: string) => Promise<unknown>;
+  handleDeleteAnswer: (answerId: string) => Promise<void>;
 }
 
 type BuilderStore = BuilderState & BuilderActions;
 
 // ─── Initial state ────────────────────────────────────────────────────────────
 // Declared outside create() so resetBuilder can spread it back cleanly.
+
+const initialQuestion: Question = 
+  {
+        questionId: crypto.randomUUID(),
+        description: "Essa é sua primeira pergunta",
+        answers: [
+          {
+            answerId: crypto.randomUUID(),
+            content: "Essa é sua primeira resposta 1",
+            correctAnswer: true,
+            order: 1,
+          },
+          {
+            answerId: crypto.randomUUID(),
+            content: "Resposta 2",
+            correctAnswer: false,
+            order: 2,
+          },
+          {
+            answerId:crypto.randomUUID(),
+            content: "Resposta 3",
+            correctAnswer: false,
+            order: 3,
+          },
+          {
+            answerId: crypto.randomUUID(),
+            content: "Resposta 4",
+            correctAnswer: false,
+            order: 4,
+          },
+        ],
+        order: 1,
+        type: "multiple_choice",
+        pointsRewarded: 5
+      }
+
+    
+
 
 const initialState: BuilderState = {
   isLoading: false,
@@ -127,51 +138,20 @@ const initialState: BuilderState = {
   lastSynced: null,
   numQuizzes: null,
   currentQuiz: {
-    id: null,
+    quizId: crypto.randomUUID(),
     title: "",
     description: "Seu novo quiz",
     questions: [
-      {
-        id: new Date().getTime(),
-        description: "Essa é sua primeira pergunta",
-        answers: [
-          {
-            id: new Date().getTime() + 1,
-            content: "Essa é sua primeira resposta 1",
-            correct_answer: true,
-            order: 1,
-          },
-          {
-            id: new Date().getTime() + 2,
-            content: "Resposta 2",
-            correct_answer: false,
-            order: 2,
-          },
-          {
-            id: new Date().getTime() + 3,
-            content: "Resposta 3",
-            correct_answer: false,
-            order: 3,
-          },
-          {
-            id: new Date().getTime() + 4,
-            content: "Resposta 4",
-            correct_answer: false,
-            order: 4,
-          },
-        ],
-        order: 1,
-        type: "multiple_choice",
-      },
+      initialQuestion
     ],
-    settings: {
+
       enableTimer: false,
       shuffle: false,
       customScore: false,
-    },
+    
     published: false,
   },
-  curQuestion: {},
+  curQuestion: initialQuestion,
   error: null,
   persist: true,
 };
@@ -185,24 +165,27 @@ export const useBuilderStore = create<BuilderStore>()((set, get) => ({
   setLoading: (loading) => set({ isLoading: loading }),
 
   // ── Quiz-level mutations ─────────────────────────────────────────────────
-  setNewQuiz: (numQuizzes) =>
-    set({
+
+  setCurrentQuiz: (quiz, numQuizzes) => {
+    if (!quiz) {
+      set({
       numQuizzes,
       currentQuiz: {
         ...initialState.currentQuiz,
-        title: `Novo Quiz ${numQuizzes + 1}`,
-        id: new Date().getTime().toString(),
+        title: `Novo Quiz ${numQuizzes ? numQuizzes + 1 : 0}`,
+        quizId: crypto.randomUUID(),
       },
       curQuestion: initialState.currentQuiz.questions[0],
       isLoading: false,
-    }),
-
-  setCurrentQuiz: (quiz) =>
+      status: "ready"
+    })
+    }
     set({
       currentQuiz: quiz,
       curQuestion: quiz?.questions[0],
       status: "ready",
-    }),
+    })
+  },
 
   setCurQuestion: (question) => set({ curQuestion: question }),
 
@@ -215,21 +198,20 @@ export const useBuilderStore = create<BuilderStore>()((set, get) => ({
   addQuestion: () =>
     set((state) => {
       const questions = state.currentQuiz.questions;
-      const newId = questions.length
-        ? Math.max(...questions.map((q) => Number(q.id))) + 1
-        : 1;
+      const newId = crypto.randomUUID()
       const newOrder = questions.length + 1;
 
       const newQuestion: Question = {
-        id: newId,
+        questionId: newId,
         description: `Nova pergunta ${newOrder}`,
         answers: questions[0].answers.map((a, index) => ({
           ...a,
-          id: new Date().getTime() + index,
+          answerId: crypto.randomUUID(),
           order: index + 1,
         })),
         type: "multiple_choice",
         order: newOrder,
+        pointsRewarded: 5
       };
 
       return {
@@ -244,20 +226,19 @@ export const useBuilderStore = create<BuilderStore>()((set, get) => ({
   addTrueOrFalseQuestion: () =>
     set((state) => {
       const questions = state.currentQuiz.questions;
-      const newId = questions.length
-        ? Math.max(...questions.map((q) => Number(q.id))) + 1
-        : 1;
+      const newId = crypto.randomUUID()
       const newOrder = questions.length + 1;
 
       const newQuestion: Question = {
-        id: newId,
-        description: `Nova Pergunta ${newId}`,
+        questionId: newId,
+        description: `Nova Pergunta ${newOrder}`,
         answers: [
-          { id: Date.now(), content: "Verdadeiro", correct_answer: true },
-          { id: Date.now() + 1, content: "Falso", correct_answer: false },
+          { answerId: crypto.randomUUID(), content: "Verdadeiro", correctAnswer: true, order: 1 },
+          { answerId: crypto.randomUUID(), content: "Falso", correctAnswer: false, order: 2 },
         ],
         type: "true_false",
         order: newOrder,
+        pointsRewarded: 5
       };
 
       return {
@@ -272,19 +253,17 @@ export const useBuilderStore = create<BuilderStore>()((set, get) => ({
   cloneQuestion: () =>
     set((state) => {
       const questions = state.currentQuiz.questions;
-      const newId = questions.length
-        ? Math.max(...questions.map((q) => Number(q.id))) + 1
-        : 1;
+      const newId = crypto.randomUUID()
       const newOrder = questions.length + 1;
       const curQuestion = state.curQuestion as Question;
 
       const clonedQuestion: Question = {
         ...curQuestion,
-        answers: curQuestion.answers.map((a, i) => ({
+        answers: curQuestion.answers.map((a) => ({
           ...a,
-          id: Date.now() + i,
+          answerId: crypto.randomUUID(),
         })),
-        id: newId,
+        questionId: newId,
         order: newOrder,
       };
 
@@ -300,13 +279,13 @@ export const useBuilderStore = create<BuilderStore>()((set, get) => ({
   updateQuestion: (question) =>
     set((state) => {
       const newQuestions = state.currentQuiz.questions.map((q) =>
-        q.id === question.id ? question : q
+        q.questionId === question?.questionId ? question : q
       );
 
       return {
         currentQuiz: { ...state.currentQuiz, questions: newQuestions },
         curQuestion:
-          newQuestions.find((q) => q.id === question.id) ?? state.curQuestion,
+          newQuestions.find((q) => q.questionId === question?.questionId) ?? state.curQuestion,
         persist: true,
       };
     }),
@@ -314,7 +293,7 @@ export const useBuilderStore = create<BuilderStore>()((set, get) => ({
   deleteQuestion: (questionId) =>
     set((state) => {
       const updatedQuestions = state.currentQuiz.questions.filter(
-        (q) => q.id !== questionId
+        (q) => q.questionId !== questionId
       );
 
       return {
@@ -324,17 +303,15 @@ export const useBuilderStore = create<BuilderStore>()((set, get) => ({
       };
     }),
 
-  // BUG FIX: original reducer compared question.id to an object (updatedQuestion)
-  // instead of updatedQuestion.id, silently filtering nothing out.
   deleteAnswer: (answerId) =>
     set((state) => {
       const curQuestion = state.curQuestion as Question;
       const updatedQuestion: Question = {
         ...curQuestion,
-        answers: curQuestion.answers.filter((a) => a.id !== answerId),
+        answers: curQuestion.answers.filter((a) => a.answerId !== answerId),
       };
       const updatedQuestions = state.currentQuiz.questions.map((q) =>
-        q.id === updatedQuestion.id ? updatedQuestion : q
+        q.questionId === updatedQuestion.questionId ? updatedQuestion : q
       );
 
       return {
@@ -354,7 +331,7 @@ export const useBuilderStore = create<BuilderStore>()((set, get) => ({
   reorderAnswers: ({ questionId, newArray }) =>
     set((state) => {
       const updatedQuestions = state.currentQuiz.questions.map((q) =>
-        q.id === questionId ? { ...q, answers: newArray } : q
+        q.questionId === questionId ? { ...q, answers: newArray } : q
       );
 
       return {
@@ -368,10 +345,10 @@ export const useBuilderStore = create<BuilderStore>()((set, get) => ({
   setCorrectAnswer: ({ questionId, answers }) =>
     set((state) => {
       const updatedQuestions = state.currentQuiz.questions.map((q) =>
-        q.id === questionId ? { ...q, answers } : q
+        q.questionId === questionId ? { ...q, answers } : q
       );
       const updatedCurQuestion = updatedQuestions.find(
-        (q) => q.id === questionId
+        (q) => q.questionId === questionId
       );
 
       return {
@@ -386,10 +363,9 @@ export const useBuilderStore = create<BuilderStore>()((set, get) => ({
     set((state) => ({
       currentQuiz: {
         ...state.currentQuiz,
-        settings: {
-          ...state.currentQuiz.settings,
-          enableTimer: !state.currentQuiz.settings.enableTimer,
-        },
+        
+        enableTimer: !state.currentQuiz.enableTimer,
+        
       },
     })),
 
@@ -397,10 +373,8 @@ export const useBuilderStore = create<BuilderStore>()((set, get) => ({
     set((state) => ({
       currentQuiz: {
         ...state.currentQuiz,
-        settings: {
-          ...state.currentQuiz.settings,
-          shuffle: !state.currentQuiz.settings.shuffle,
-        },
+        shuffle: !state.currentQuiz.shuffle,
+        
       },
     })),
 
@@ -408,10 +382,9 @@ export const useBuilderStore = create<BuilderStore>()((set, get) => ({
     set((state) => ({
       currentQuiz: {
         ...state.currentQuiz,
-        settings: {
-          ...state.currentQuiz.settings,
-          customScore: !state.currentQuiz.settings.customScore,
-        },
+        
+        customScore: !state.currentQuiz.customScore,
+        
       },
     })),
 
@@ -428,7 +401,7 @@ export const useBuilderStore = create<BuilderStore>()((set, get) => ({
     set({
       isLoading: false,
       currentQuiz: initialState.currentQuiz,
-      curQuestion: {},
+      curQuestion: null,
       error: null,
     }),
 
@@ -440,37 +413,39 @@ export const useBuilderStore = create<BuilderStore>()((set, get) => ({
   resetBuilder: () => set({ ...initialState }),
 
   // ── Async thunks ─────────────────────────────────────────────────────────
-  handleNumOfQuizzes: async (filters) => {
-    const numQuizzes = await fetchNumOfQuizzes(filters);
-    return numQuizzes;
-  },
+  // handleNumOfQuizzes: async (filters) => {
+  //   const numQuizzes = await fetchNumOfQuizzes(filters);
+  //   return numQuizzes;
+  // },
 
-  handleNewQuiz: async () => {
-    get().setLoading(true);
-    try {
-      const numQuizzes = await get().handleNumOfQuizzes();
-      get().setNewQuiz(numQuizzes);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      get().setLoading(false);
-    }
-  },
+  // handleNewQuiz: async () => {
+  //   get().setLoading(true);
+  //   try {
+  //     const numQuizzes = await get().handleNumOfQuizzes();
+  //     get().setCurrentQuiz(null, numQuizzes);
+  //   } catch (error) {
+  //     console.error(error);
+  //   } finally {
+  //     get().setLoading(false);
+  //   }
+  // },
 
-  handleGetQuiz: async (quizId) => {
-    get().setLoading(true);
-    try {
-      const data = await fetchQuiz(quizId);
-      get().setCurrentQuiz(data);
-      return data;
-    } catch (error) {
-      get().setError(error);
-    } finally {
-      get().setLoading(false);
-    }
-  },
+  // handleGetQuiz: async (quizId) => {
+  //   get().setLoading(true);
+  //   try {
 
-  handleInsertQuiz: async (quiz) => {
+  //     const numQuizzes = fetchNumOfQuizzes();
+  //     const data = await fetchQuiz(quizId);
+  //     get().setCurrentQuiz(data, numQuizzes);
+  //     return data;
+  //   } catch (error) {
+  //     get().setError(error);
+  //   } finally {
+  //     get().setLoading(false);
+  //   }
+  // },
+
+  handleInsertQuiz: async (quiz: Quiz) => {
     get().setLoading(true);
     try {
       const data = await insertQuiz(quiz);
@@ -496,7 +471,7 @@ export const useBuilderStore = create<BuilderStore>()((set, get) => ({
     }
   },
 
-  handleDeleteQuestion: async (questionId) => {
+  handleDeleteQuestion: async (questionId: string) => {
     get().setLoading(true);
     try {
       const result = await deleteQuestion(questionId);
