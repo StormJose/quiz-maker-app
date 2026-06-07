@@ -144,11 +144,10 @@ const initialState: BuilderState = {
     questions: [
       initialQuestion
     ],
-
-      enableTimer: false,
-      shuffle: false,
-      customScore: false,
-    
+    enableTimer: false,
+    shuffle: false,
+    customScore: false,
+    realTimeAnswer: false,
     published: false,
   },
   curQuestion: initialQuestion,
@@ -179,12 +178,14 @@ export const useBuilderStore = create<BuilderStore>()((set, get) => ({
       isLoading: false,
       status: "ready"
     })
+    } else {
+      set({
+        currentQuiz: quiz,
+        curQuestion: quiz?.questions[0],
+        isLoading: false,
+        status: "ready",
+      })
     }
-    set({
-      currentQuiz: quiz,
-      curQuestion: quiz?.questions[0],
-      status: "ready",
-    })
   },
 
   setCurQuestion: (question) => set({ curQuestion: question }),
