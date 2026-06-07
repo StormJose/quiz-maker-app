@@ -16,7 +16,6 @@ interface UnsavedChangesDialogProps {
 }
 
 export default function UnsavedChangesDialog({open, onHandleStay, onHandleLeave}: UnsavedChangesDialogProps) {
-  console.log(open)
   return (
     <Dialog open={open}>
       <DialogOverlay />

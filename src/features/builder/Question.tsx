@@ -39,9 +39,9 @@ export default function Question() {
       points_rewarded: Number(pointsRewarded),
     };
 
-    // builderDispatch({ type: "updateQuestion", payload: updatedQuestion });
+    
   }
-  console.log(currentQuiz.customScore);
+
   return (
     <div>
       <div className="flex justify-between mt-6 mb-12">

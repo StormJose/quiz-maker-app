@@ -44,7 +44,7 @@ export const fetchNumOfQuizzes = async function (filters: {column?: string, valu
         .eq(column ?? "", value);
 
       if (error) {
-        console.log(error);
+
         throw error;
       }
       return count;
@@ -55,7 +55,6 @@ export const fetchNumOfQuizzes = async function (filters: {column?: string, valu
         .eq("user_id", curUser?.id);
 
       if (error) {
-        console.log(error);
         throw error;
       }
       return count;
@@ -126,7 +125,7 @@ export const insertQuestions = async function (questionData: RawQuestion[]) {
 
     return data;
   } catch (error) {
-    console.log(error)
+    console.error(error)
   }
 };
 
@@ -141,7 +140,7 @@ export const insertAnswers = async function (answerData: RawAnswer[]) {
 
     return data;
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 };
 
@@ -162,8 +161,7 @@ export const upsertQuizSettings = async function (quizData: Quiz) {
       .select("*");
 
     if (error) throw error;
-    console.log(quizData)
-    console.log(data);
+
     return data;
   } catch (error) {
     console.error(error);

@@ -42,7 +42,7 @@ export default function Button({
   }
 
   const [ripples, setRipples] = useState<RipplesType[]>([]);
-  console.log(ripples)
+
   const standard = `bg-main text-gray-100 hover:bg-indigo-400 hover:no-underline`;
   const alternate = `bg-gray text-gray-950  hover:bg-neutral-200 `;
   const cancel = `bg-red-300 text-red-600  hover:bg-red-200 `;

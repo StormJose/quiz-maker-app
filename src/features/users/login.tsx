@@ -42,7 +42,6 @@ export default function Login() {
      setErrors(formErrors);
      console.log(Object.entries(formErrors).length === 0, formErrors);
      if (Object.entries(formErrors).length === 0) {
-       console.log("click");
        try {
          await signIn(form.email, form.password);
 

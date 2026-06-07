@@ -33,8 +33,8 @@ function SortableQuestionCard({ question, isActive, onClick, isDragOverlay }: So
       style={style}
       onClick={onClick}
       role="button"
-      tabIndex={0}
-      onKeyDown={(e) => e.key === "Enter" && onClick?.()}
+      tabIndex={0} 
+           onKeyDown={(e) => e.key === "Enter" && onClick?.()}
       aria-current={isActive ? "true" : undefined}
       className={`
         group relative flex items-start gap-2 rounded-lg border px-3 py-2.5 cursor-pointer
@@ -88,7 +88,7 @@ function SortableQuestionCard({ question, isActive, onClick, isDragOverlay }: So
 }
 
 export function QuestionsSidebar() {
-  const {currentQuiz, setCurQuestion, reorderQuestions, curQuestion} = useBuilder();
+  const {currentQuiz, curQuestion, setCurQuestion, reorderQuestions } = useBuilder();
   const [activeCard, setActiveCard] = useState<Question | null>(null);
 
   const sensors = useSensors(
@@ -98,7 +98,6 @@ export function QuestionsSidebar() {
   );
 
   function handleDragStart(e: DragStartEvent ) {
-    console.log(e)
     setActiveCard(
       currentQuiz?.questions.find((question) => question.questionId === e.active.id) ?? null,
     );
@@ -107,7 +106,7 @@ export function QuestionsSidebar() {
   function handleDragEnd(e: DragEndEvent) {
     setActiveCard(null);
     const { active, over } = e;
-      console.log(e)
+
     if (!over || active.id === over.id) return;
     const oldIndex = currentQuiz?.questions.findIndex((q) => q.questionId === active.id);
     const newIndex = currentQuiz?.questions.findIndex((q) => q.questionId === over.id);
@@ -145,9 +144,9 @@ export function QuestionsSidebar() {
             {currentQuiz?.questions.map((question) => (
               <SortableQuestionCard
                 isDragOverlay={() => {}}
-                key={question.questionId}
+                key={question?.questionId}
                 question={question}
-                isActive={question.questionId === curQuestion?.questionId}
+                isActive={question?.questionId === curQuestion?.questionId}
                 onClick={() => handleSelectQuestion(question)}
               />
             ))}

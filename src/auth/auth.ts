@@ -48,7 +48,7 @@ export async function signUpNewUser(email, password) {
       error,
     };
   } catch (error) {
-    console.log(error);
+    console.error(error);
     throw error;
   }
 }
@@ -61,8 +61,6 @@ export async function signInWithEmail(email, password) {
     });
 
     if (error) throw error;
-
-    console.log(data);
 
     return data;
   } catch (error) {

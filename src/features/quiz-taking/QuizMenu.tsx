@@ -15,7 +15,6 @@ export default function QuizMenu() {
     const navigate = useNavigate()
     const [open, setOpen] = useState(false);
     function handleOpenMenu() {
-      console.log("click");
       setOpen((cur) => (cur === open ? !open : open));
     }
 

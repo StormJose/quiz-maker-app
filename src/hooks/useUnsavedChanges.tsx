@@ -8,7 +8,6 @@ export function useUnsavedChanges(currentQuiz: Quiz, status: string) {
   const nextPathRef = useRef<string | null>(null);
 
   const settings = {
-    enableTimer: currentQuiz.enableTimer,
     shuffle: currentQuiz.shuffle,
     customScore: currentQuiz.customScore,
   };
@@ -41,7 +40,6 @@ export function useUnsavedChanges(currentQuiz: Quiz, status: string) {
   };
 
   const handleLeave = () => {
-    console.log(nextPathRef.current)
     setShowDialog(false);
     if (nextPathRef.current) {
       if (blocker.proceed) {

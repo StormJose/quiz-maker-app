@@ -6,9 +6,7 @@ import { useBeforeUnload, useBlocker } from "react-router";
 
 export function useWarningDialog() {
   const { closeDialog, showDialog, dialogLabel, dialogMessage, confirmHandler } =
-    useQuizzes();
-
-  // console.log(confirmHandler, dialogMessage)
+  useQuizzes();
 
   useBeforeUnload((e) => {
     e.preventDefault();

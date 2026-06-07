@@ -60,7 +60,6 @@ function Carousel({
 
   const scrollPrev = React.useCallback(() => {
     api?.scrollPrev();
-    console.log(api?.scrollProgress());
   }, [api]);
 
   const scrollNext = React.useCallback(() => {

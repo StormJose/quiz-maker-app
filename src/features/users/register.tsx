@@ -5,7 +5,7 @@ import { Form, NavLink, useNavigate } from "react-router";
 import Button from "@/ui/Button";
 
 export default function Register() {
-  const { status, error, currentUser, signUp, dispatch } = useAuth();
+  const { error, currentUser, signUp, dispatch } = useAuth();
 
   const navigate = useNavigate();
 
@@ -19,8 +19,6 @@ export default function Register() {
   });
 
   useEffect(() => {
-    if (error) console.log(error);
-
     if (currentUser) navigate("/");
   }, [currentUser, error]);
 

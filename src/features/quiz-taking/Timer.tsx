@@ -23,7 +23,6 @@ export default function Timer({quizTime}: {quizTime: number}) {
       }, 1000);  
     }
     testTimer()
-    console.log(timerSeconds)
 
    return () => clearInterval(intervalId)
 }, [timerSeconds])

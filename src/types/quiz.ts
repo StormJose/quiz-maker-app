@@ -8,5 +8,6 @@ export interface Quiz {
   enableTimer: boolean;
   shuffle: boolean;
   customScore: boolean;
+  realTimeAnswer: boolean;
   published: boolean;
 }

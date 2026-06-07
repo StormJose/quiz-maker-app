@@ -16,7 +16,7 @@ export default function QuizSettings() {
     toggleCustomScore,
     handleUpsertQuizSettings,
   } = useBuilder();
-
+  
   const { dirty, Dialog, handleUpdateSettings } = useUnsavedChanges(currentQuiz, status);
 
   function handleTimer() {
@@ -36,7 +36,6 @@ export default function QuizSettings() {
       await handleUpsertQuizSettings(currentQuiz);
 
       handleUpdateSettings({
-        enableTimer: currentQuiz.enableTimer, 
         shuffle: currentQuiz.shuffle, 
         customScore: currentQuiz.customScore 
       });
@@ -45,8 +44,6 @@ export default function QuizSettings() {
       feedback.error("Erro ao alterar definições");
     }
   }
-  console.log("currentQuiz: ", currentQuiz)
-
 
   return (
     <div className="grid gap-y-12">

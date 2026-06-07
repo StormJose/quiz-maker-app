@@ -45,7 +45,6 @@ function reducer(state: InitialState, action: Action) {
         status: "ready",
       };
     case "setError":
-      console.log(action.payload)
       if (isAuthSessionMissingError(action.payload)) {
         return {
           ...state,
@@ -119,7 +118,6 @@ function AuthProvider({ children }) {
       if (error) throw error;
 
       if (data) {
-        console.log(data);
         const { data: userData, error: creationError } = await supabase
           .from("users")
           .insert([{ id: data.user.id }]);

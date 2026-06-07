@@ -51,7 +51,6 @@ export default function Input({ item, active, listeners }: InputProps) {
       questionId: curQuestion?.questionId,
       answers: updatedAnswers,
     };
-    console.log(payload.answers);
 
     setCorrectAnswer(payload)
   }
