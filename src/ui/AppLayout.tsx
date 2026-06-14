@@ -2,50 +2,43 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   Outlet,
   redirect,
-  useLocation,
 } from "react-router";
 import BackLink from "./BackLink";
 import Header from "./Header";
-import ConfirmAction from "./ConfirmAction";
-import Button from "./Button";
 import { getCurrentUser } from "@/auth/auth";
+import { useWarningDialog, WarningDialogProvider } from "@/hooks/useWarningDialog";
+import WarningDialog from "./dialogs/warning-dialog";
 
 export default function AppLayout() {
 
-  const pathname = useLocation().pathname;
-
   const { error } = useAuth();
-
 
   if (error.type != "SessionMissingError")
     return (
+  <WarningDialogProvider>
       <div className="font-noto ">
-        <ConfirmAction />
         <Header />
         <div className="grid grid-cols-2 mx-8">
           <div className="py-4">
             <BackLink />
           </div>
-          {pathname === "/builder" && (
-            <div className="flex justify-end gap-2 items-center">
-              <Button styles={"alternate"}>Salvar como rascunho</Button>
-              <Button styles={"standard"} disabled={true} tooltip={"Em breve"}>
-                Publicar
-              </Button>
-            </div>
-          )}
+
         </div>
         <main className="grid lg:max-w-[1440px] mx-auto my-0 ">
           <Outlet />
         </main>
-      </div>
+          <WarningDialog
+       
+      />
+        </div>
+    </WarningDialogProvider>
     );
 }
 
 
 export const protectedLoader = async () => {
   const session = await getCurrentUser();
-
+  
   if (!session.user) return redirect("/signin");
  
   return null;

@@ -10,12 +10,6 @@ interface SelectedAnswer {
   answer: { correct_answer: boolean };
 }
 
-interface DialogPayload {
-  handler: (...args: unknown[]) => unknown;
-  dialogLabel?: string | null;
-  dialogMessage?: string | null;
-}
-
 interface QuizzesState {
   quizzes: Quiz[];
   currentQuiz: Quiz | null;
@@ -27,11 +21,7 @@ interface QuizzesState {
   totalScore: number;
   selectedAnswers: SelectedAnswer[];
   numCorrectAnswers: number | null;
-  confirmHandler: ((...args: unknown[]) => unknown) | null;
-  confirmData: string | null;
-  showDialog: boolean;
-  dialogLabel: string | null;
-  dialogMessage: string | null;
+
 }
 
 interface QuizzesActions {
@@ -48,14 +38,6 @@ interface QuizzesActions {
   submitQuiz: () => void;
   resetQuiz: () => void;
   removeQuiz: (quizId: string) => void;
-
-  // Dialog
-  openDialog: (payload: DialogPayload) => void;
-  closeDialog: () => void;
-
-  // Confirm action
-  setConfirmAction: (payload: { handler: (...args: unknown[]) => unknown; quizId: string }) => void;
-  resetConfirmAction: () => void;
 
   // Async thunks
   handleGetUserQuizzes: (userId: string) => Promise<void>;
@@ -74,12 +56,7 @@ const initialState: QuizzesState = {
   pointsPerQuestion: 15,
   totalScore: 0,
   selectedAnswers: [],
-  numCorrectAnswers: null,
-  confirmHandler: null,
-  confirmData: null,
-  showDialog: false,
-  dialogLabel: null,
-  dialogMessage: null,
+  numCorrectAnswers: null
 };
 
 export const useQuizzesStore = create<QuizzesStore>()((set, get) => ({
@@ -142,23 +119,6 @@ export const useQuizzesStore = create<QuizzesStore>()((set, get) => ({
       status: "ready",
     })),
 
-  // ── Dialog ────────────────────────────────────────────────────────────────
-  openDialog: ({ handler, dialogLabel = null, dialogMessage = null }) =>
-    set({
-      showDialog: true,
-      confirmHandler: handler,
-      dialogLabel,
-      dialogMessage,
-      status: "ready",
-    }),
-
-  closeDialog: () => set({ showDialog: false, confirmHandler: null }),
-
-  // ── Confirm action ────────────────────────────────────────────────────────
-  setConfirmAction: ({ handler, quizId }) =>
-    set({ confirmHandler: handler, confirmData: quizId }),
-
-  resetConfirmAction: () => set({ confirmData: null, confirmHandler: null }),
 
   // ── Async thunks ─────────────────────────────────────────────────────────
   handleGetUserQuizzes: async (userId) => {

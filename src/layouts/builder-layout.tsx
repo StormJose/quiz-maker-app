@@ -1,5 +1,5 @@
 
-import { Outlet, Params, useLoaderData, useNavigate, useNavigation } from "react-router"
+import { Link, Outlet, useLoaderData, useNavigate, useNavigation } from "react-router"
 import { fetchNumOfQuizzes, fetchQuiz, fetchQuizzes } from "@/api/supabaseApi";
 import Sidebar from "./sidebar"
 import { useBuilder } from "@/store/builderStore"
@@ -9,41 +9,49 @@ import { useEffect } from "react";
 import BuilderSkeleton from "@/skeletons/BuilderSkeleton";
 import { QuizItemSkeleton } from "@/skeletons/quiz-item-skeleton";
 import { getCurrentUser } from "@/auth/auth";
+import { Button } from "@/components/ui/button";
+import WarningDialog from "@/ui/dialogs/warning-dialog";
 
 
 export default function BuilderLayout() {
   const navigation = useNavigation();
-  const navigate = useNavigate();
   const { existingQuiz, quizzes, limitReached } = useLoaderData();
-  const { openDialog } = useQuizzes();
   const { status, setCurrentQuiz} = useBuilder();
 
-  const { Dialog } = useWarningDialog();
-
-  function handleGoBack() {
-    navigate("/");
-  }
+   const { dispatch } = useWarningDialog()
 
   useEffect(() => {
     if (limitReached) {
-      openDialog({
-        handler: handleGoBack,
-        dialogLabel: "Limite atingido",
-        dialogMessage:
+      console.log("passed")
+      dispatch({
+        type: "openDialog",
+        payload: {
+          dialogLabel: "Limite atingido",
+          dialogMessage:
           "Você está no limite de rascunhos. Caso deseje criar um novo Quiz, publique pelo menos um dos rascunhos existentes.",
+        }
       });
       return;
     }
-
+   
     setCurrentQuiz(existingQuiz, quizzes?.length)
       
   }, [existingQuiz?.quizId]);
-
-  if (limitReached) return <div>{Dialog};</div>;
+  
+  if (limitReached) return 
  
   if (status !== "ready") return <BuilderSkeleton />;
 
   return (
+    <div >
+      <div className="mb-4">
+      <Button intent={"alternate"} size={"lg"}>
+            <Link to={"/quizzes"} >
+              Voltar para Quizzes
+            </Link>
+            </Button>
+      </div>
+  
     <div
       className="grid-cols-[auto_2fr] border-[1.55px] border-secondary shadow-2xl shadow-secondary px-6 py-8 rounded-2xl self-center
         grid w-full
@@ -57,23 +65,22 @@ export default function BuilderLayout() {
             <QuizItemSkeleton />
           </div>
         ) : (
-      
+          
           <Outlet />
         )}
       </div>
-      {Dialog}
+    </div>
     </div>
   );
 }
 
-export async function editQuizLoader({ params }) {
+export async function editQuizLoader({ params }: {params: {quizId: string}}) {
   const { quizId } = params;
   const { user } = await getCurrentUser();
 
   // quiz
   const quizzes = user ? await fetchQuizzes(user?.id) : null
   const existingQuiz = await fetchQuiz(quizId);
-
   return {
     existingQuiz,
     quizzes,
