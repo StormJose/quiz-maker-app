@@ -1,12 +1,12 @@
 import { useBuilder } from "@/store/builderStore";
-import Button from "../../ui/Button";
 import Input from "./Input";
+import { Button } from "@/components/ui/button";
 
 export default function Answers() {
   const { curQuestion, updateQuestion } = useBuilder();
 
   async function handleAddAnswer() {
-    const order = curQuestion.answers.length + 1;
+    const order = curQuestion?.answers.length + 1;
 
     const newAnswer = {
       answerId: crypto.randomUUID(),
@@ -17,28 +17,27 @@ export default function Answers() {
 
     const updatedQuestion = {
       ...curQuestion,
-      answers: [...curQuestion.answers, newAnswer],
+      answers: [...curQuestion?.answers, newAnswer],
     };
 
     updateQuestion(updatedQuestion)
   }
 
-  const answers = curQuestion?.answers?.length > 0 ? curQuestion?.answers : [];
-  const maxAnswers = curQuestion.answers?.length === 4;
+  const answers = curQuestion.answers?.length > 0 ? curQuestion?.answers : [];
+  const maxAnswers = curQuestion?.answers.length === 4;
   return (
     <div className="py-12">
       <div className="flex flex-col gap-3 h-fit">
-        {answers.map((answer) => (
+        {answers?.map((answer) => (
           <Input key={answer.answerId} item={answer} />
         ))}
-        {curQuestion.type == "multiple_choice" && (
+        {curQuestion?.type == "multiple_choice" && (
           <Button
             type="button"
-            styles="standard"
-            additionalStyles={"self-start rounded-md px-4 py-1.5"}
+            intent={"standard"}
             disabled={maxAnswers}
-            onClick={handleAddAnswer}>
-            {/* <Plus /> */}
+            onClick={handleAddAnswer}
+            className="self-start">
             Adicionar resposta
           </Button>
         )}

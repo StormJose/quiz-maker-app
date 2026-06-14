@@ -1,4 +1,4 @@
-import Button from "./Button";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,DialogFooter,
   DialogHeader,
@@ -27,10 +27,10 @@ export default function UnsavedChangesDialog({open, onHandleStay, onHandleLeave}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="flex justify-center items-center gap-2">
-          <Button type="button" styles={"standard"} onClick={onHandleStay} additionalStyles={"px-4 py-1.5"}>
+          <Button type="button" intent={"standard"} onClick={onHandleStay} className={"px-4 py-1.5"}>
             Cancelar
           </Button>
-          <Button type="button" styles="alternate" onClick={onHandleLeave} additionalStyles={"px-4 py-1.5"}>Sair</Button>
+          <Button type="button" intent="alternate" onClick={onHandleLeave} className={"px-4 py-1.5"}>Sair</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

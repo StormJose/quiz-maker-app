@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 
-export default function Timer({quizTime}: {quizTime: number}) {
+export default function Timer() {
 
-  const [timerSeconds, setTimerSeconds] = useState(quizTime);
+  const [timerSeconds, setTimerSeconds] = useState();
 
 
   const parseTimer = (totalSeconds) => {

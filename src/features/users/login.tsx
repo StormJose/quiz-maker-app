@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import {  useState } from "react";
 import { Form, useNavigate } from "react-router";
-import { Input } from "@/components/ui/input";
-import Button from "@/ui/Button";
+import { Input } from "@/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
 
 
 
@@ -14,7 +14,7 @@ export default function Login() {
      email?: string;
      password?: string;
    };
-   const { currentUser, error, status, signIn, dispatch } = useAuth();
+   const { error, status, signIn, dispatch } = useAuth();
 
    const [errors, setErrors] = useState<FormErrors>({
      email: "",
@@ -86,9 +86,9 @@ export default function Login() {
 
        <Button
          onClick={handleSubmit}
-         styles={"standard"}
+         intent={"standard"}
          isLoading={status === "loading"}
-         additionalStyles={"justify-center px-4 py-1.5"}>
+     >
          Entrar
        </Button>
      </Form>

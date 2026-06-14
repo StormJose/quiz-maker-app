@@ -1,59 +1,144 @@
-import * as React from "react"
-import { Slot } from "@radix-ui/react-slot"
-import { cva, type VariantProps } from "class-variance-authority"
-import { cn } from "@/utils"
-
+import { cva, type VariantProps } from "class-variance-authority";
+import { Slot } from "@radix-ui/react-slot";
+import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Loader2Icon } from "lucide-react";
+import { cn } from "../../utils"; 
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive cursor-pointer",
+  "inline-flex items-center gap-2 font-semibold cursor-pointer relative overflow-hidden rounded-full transition-all disabled:opacity-50 disabled:pointer-events-none",
   {
     variants: {
-      variant: {
-        default:
-          "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
-        destructive:
-          "bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
-        outline:
-          "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
-        secondary:
-          "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80 border-[1.25px]",
-        ghost:
-          "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
-        link: "text-primary underline-offset-4 hover:underline",
+      intent: {
+        standard: "bg-main text-gray-100 hover:bg-indigo-400",
+        alternate: "bg-gray text-gray-950 hover:bg-neutral-200",
+        cancel: "bg-gray-100 text-red-600 hover:bg-red-200",
       },
       size: {
-        default: "h-9 px-4 py-2 has-[>svg]:px-3",
-        sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
-        lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
-        icon: "size-9",
+        default: "px-4 py-2 text-sm",
+        sm: "px-3 py-1.5 text-xs",
+        lg: "px-6 py-3 text-base",        
+        icon: "size-9 justify-center",
       },
     },
     defaultVariants: {
-      variant: "default",
+      intent: "standard",
       size: "default",
     },
   }
-)
+);
 
-function Button({
+type RippleEntry = {
+  id: number;
+  size: number;
+  x: number;
+  y: number;
+};
+
+interface ButtonProps
+  extends React.ComponentProps<"button">,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean;
+  isLoading?: boolean;
+  tooltip?: string;
+  tooltipPosition?: "top" | "bottom";
+}
+
+export function Button({
   className,
-  variant,
+  intent,
   size,
   asChild = false,
+  isLoading = false,
+  disabled,
+  tooltip,
+  tooltipPosition = "top",
+  children,
+  onClick,
   ...props
-}: React.ComponentProps<"button"> &
-  VariantProps<typeof buttonVariants> & {
-    asChild?: boolean
-  }) {
-  const Comp = asChild ? Slot : "button"
+}: ButtonProps) {
+  const [ripples, setRipples] = useState<RippleEntry[]>([]);
+  const Comp = asChild ? Slot : "button";
+
+  const isDisabled = disabled || isLoading;
+
+  function handleRipple(e: React.MouseEvent<HTMLElement>) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const rippleSize = Math.max(rect.width, rect.height);
+    setRipples((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        x: e.clientX - rect.left - rippleSize / 2,
+        y: e.clientY - rect.top - rippleSize / 2,
+        size: rippleSize,
+      },
+    ]);
+  }
 
   return (
     <Comp
       data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={cn(
+        buttonVariants({ intent, size }),
+        "group/button",
+        className
+      )}
+      disabled={isDisabled}
+      onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+        handleRipple(e);
+        onClick?.(e);
+      }}
       {...props}
-    />
-  )
+    >
+      <span className="flex items-center gap-2 relative z-10">
+        {isLoading ? (
+          <>
+            <Loader2Icon className="animate-spin" />
+            <span>Aguarde</span>
+          </>
+        ) : (
+          children
+        )}
+      </span>
+
+      <AnimatePresence>
+        {ripples.map((ripple) => (
+          <motion.span
+            key={ripple.id}
+            initial={{
+              opacity: 1,
+              scale: 0,
+              top: ripple.y,
+              left: ripple.x,
+              width: ripple.size,
+              height: ripple.size,
+            }}
+            animate={{ opacity: 0.8, scale: 2 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            onAnimationComplete={() =>
+              setRipples((prev) => prev.filter((r) => r.id !== ripple.id))
+            }
+            className="absolute rounded-full bg-main pointer-events-none"
+          />
+        ))}
+      </AnimatePresence>
+
+      {tooltip && (
+        <span
+          className={cn(
+            "pointer-events-none absolute opacity-0 group-hover/button:opacity-100 bg-gray-50 text-gray-950 font-semibold text-sm p-2.5 rounded-full transition-all",
+            tooltipPosition === "top"
+              ? "-translate-y-[50px]"
+              : "top-full mt-2"
+          )}
+        >
+          {tooltip}
+        </span>
+      )}
+    </Comp>
+  );
 }
 
-export { Button, buttonVariants }
+export { buttonVariants };

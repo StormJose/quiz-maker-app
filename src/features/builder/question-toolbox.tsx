@@ -36,7 +36,7 @@ export function QuestionToolbox () {
       <div className="flex items-center gap-1 border-t border-border px-3 py-3">
         <Button
           type="button"
-          variant="ghost"
+          intent="alternate"
           size="sm"
           className=" justify-start gap-2 text-xs font-medium hover:bg-tint border-[1.55px] border-tint"
           onClick={() => handleAddQuestion()}>
@@ -45,7 +45,7 @@ export function QuestionToolbox () {
         </Button>
         <Button
           type="button"
-          variant="ghost"
+          intent="alternate"
           size="sm"
           className=" justify-start gap-2 text-xs font-medium hover:bg-tint border-[1.55px] border-tint"
           onClick={() => handleAddTrueOrFalseQuestion()}>
@@ -56,7 +56,7 @@ export function QuestionToolbox () {
         <div className="flex gap-1 pt-1">
           <Button
             type="button"
-            variant="ghost"
+            intent="alternate"
             size="sm"
             className="flex-1 gap-1.5 text-xs hover:big-tint"
             onClick={handleClone}>
@@ -65,7 +65,7 @@ export function QuestionToolbox () {
           </Button>
           <Button
             type="button"
-            variant="ghost"
+            intent="alternate"
             size="sm"
             disabled={!canDelete}
             className="flex-1 gap-1.5 text-xs text-destructive hover:text-destructive hover:border-destructive/50 hover:bg-destructive/20 disabled:opacity-40"

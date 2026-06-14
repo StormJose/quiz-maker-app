@@ -166,6 +166,14 @@ export const useBuilderStore = create<BuilderStore>()((set, get) => ({
   // ── Quiz-level mutations ─────────────────────────────────────────────────
 
   setCurrentQuiz: (quiz, numQuizzes) => {
+      // set({
+      //   currentQuiz: quiz,
+      //   curQuestion: quiz?.questions[0],
+      //   isLoading: false,
+      //   status: "ready",
+      // })
+
+      // console.log(quiz)
     if (!quiz) {
       set({
       numQuizzes,

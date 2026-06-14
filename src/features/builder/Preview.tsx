@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { useLocation, useNavigate, useParams } from "react-router";
+import { useParams } from "react-router";
 import { useAutoSaveQuiz } from "../../hooks/useAutoSave"
 import BuilderSkeleton from "@/skeletons/BuilderSkeleton";
-import Button from "@/ui/Button";
 import { useBuilder } from "@/store/builderStore";
+import { Button } from "@/components/ui/button";
 
 export default function Preview() {
   const { quizId } = useParams();
@@ -13,20 +13,12 @@ export default function Preview() {
     isLoading,
     status,
     currentQuiz,
-    handleNumOfQuizzes,
-    handleNewQuiz,
-    handleGetQuiz,
-    dispatch: builderDispatch,
+    setCurrentQuiz
   } = useBuilder();
-
-
-  const isFirst = curQuestion === 0
-  const isLast = currentQuiz.questions.length - 1 === curQuestion
-
 
   // Loading quiz draft
   const onRestoreAction = (quiz) =>
-    builderDispatch({ type: "setCurrentQuiz", payload: quiz });
+    setCurrentQuiz(quiz, null);
 
   const { draftStatus, savedDraft } = useAutoSaveQuiz(
     quizId,
@@ -72,19 +64,15 @@ export default function Preview() {
       </ul>
       <footer className="flex justify-between px-4 py-8 mt-12 w-full border-t-[1.55px] border-grey bottom-0 rounded-xl">
         <Button
-          styles={"alternate"}
-          additionalStyles={`px-4 py-1.5 ${
-            isFirst ? "pointer-events-none opacity-50" : ""
-          }`}
+          intent={"alternate"}
+
           onClick={handlePreviousQuestion}>
           Anterior
         </Button>
 
         <Button
-          styles={"standard"}
-          additionalStyles={`px-4 py-1.5 ${
-            isLast ? "pointer-events-none opacity-50" : ""
-          }`}
+          intent={"standard"}
+   
           onClick={handleNextQuestion}>
           Próxima
         </Button>

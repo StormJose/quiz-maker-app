@@ -9,7 +9,7 @@ import QuizResults from "./features/quizzes/QuizResults";
 import InQuiz, {
   loader as questionsLoader,
 } from "./features/quiz-taking/InQuiz";
-import Register from "./features/users/Register";
+import Register from "./features/users/signup";
 import Login from "./features/users/login";
 import NewBuilder from "./features/builder/new-builder";
 import BuilderLayout, {
@@ -19,7 +19,7 @@ import BuilderLayout, {
 import QuizSettings from "./features/settings/quiz-settings";
 import ErrorBoundary from "./ui/error-boundary";
 import Preview from "./features/builder/Preview";
-import NotFound from "./ui/NotFound";
+import NotFound from "./ui/not-found";
 import Settings from "./features/users/settings";
 
 const routes = [

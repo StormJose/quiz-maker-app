@@ -1,15 +1,24 @@
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { AnimatePresence, motion } from "framer-motion";
-import { useNavigate } from "react-router";
-import Button from "../../ui/Button";
+import { Link, useNavigate } from "react-router";
 import { useQuizzes } from "../../store/quizzesStore";
 import { Ellipsis, Pen, Timer } from "lucide-react";
-import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { Heading } from "@/ui/Heading";
 import { useState } from "react";
+import { Quiz } from "@/types/quiz";
+import { Button } from "@/components/ui/button";
+import { useWarningDialog } from "@/hooks/useWarningDialog";
+import ConfirmAction from "@/ui/dialogs/confirm-action-dialog";
 
-export default function QuizItem({ quiz }) {
+
+interface QuizItemProps {
+  quiz: Quiz
+}
+
+export default function QuizItem({ quiz }: QuizItemProps) {
   const navigate = useNavigate();
-  const { setConfirmAction, handleDeleteQuiz } = useQuizzes();
+  const { handleDeleteQuiz } = useQuizzes();
+  const { dispatch } = useWarningDialog()
   const [selectedCard, setSelectedCard] = useState(false);
   const numQuestions = quiz.questions.length;
   return (
@@ -40,7 +49,7 @@ export default function QuizItem({ quiz }) {
       <motion.div
         initial={{ height: 0 }}
         animate={{ height: "auto" }}
-        exit={{ height: 0 }}
+        exit={{ height: 2 }}
         transition={{ ease: "easeInOut" }}>
         <Heading as={"h3"}> {quiz.title} </Heading>
       </motion.div>
@@ -50,12 +59,13 @@ export default function QuizItem({ quiz }) {
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
+            exit={{ opacity: 0, height: 1 }}
             transition={{
               layout: {
                 type: "spring",
-                stiffness: 300,
-                damping: 30,
+                stiffness: 250,
+                damping: 50,
+                
               },
               duration: 0.3,
               ease: [0.04, 0.62, 0.23, 0.98],
@@ -67,13 +77,14 @@ export default function QuizItem({ quiz }) {
       </AnimatePresence>
       <div className="relative flex items-center self-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
         <div className="flex items-center gap-2">
-          {/* Edit button — unchanged */}
           <Button
-            to={`/quiz/${quiz.quizId}/edit`}
+            
+            type="button"
             tooltip="Edit Quiz"
-            onClick={(e) => e.stopPropagation()}
-            additionalStyles="py-1 px-2 hover:bg-white rounded-md">
-            <Pen width={18} />
+            onClick={(e) => e?.stopPropagation()}>
+            <Link to={`/quiz/${quiz.quizId}/edit`}>
+              <Pen width={18}/>
+            </Link>
           </Button>
 
           <DropdownMenu.Root>
@@ -101,10 +112,15 @@ export default function QuizItem({ quiz }) {
                   Compartilhar
                 </DropdownMenu.Item>
                 <DropdownMenu.Item
-                  onSelect={() =>
-                    setConfirmAction({
-                      quizId: quiz.quizId,
-                      handler: handleDeleteQuiz,
+                  onSelect={() => 
+                    dispatch({
+                      type: "confirmAction",
+                      payload: {
+                        dialogLabel: "Excluir Quiz",
+                        dialogMessage: `Tem certeza de que deseja excluir ${quiz.title}?`,
+                        data: quiz.quizId,                        
+                        handler: handleDeleteQuiz,
+                      }
                     })
                   }
                   className="text-gra text-sm px-3 py-4  cursor-pointer
@@ -116,6 +132,7 @@ export default function QuizItem({ quiz }) {
             </DropdownMenu.Portal>
           </DropdownMenu.Root>
         </div>
+  
       </div>
     </motion.div>
   );

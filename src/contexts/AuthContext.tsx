@@ -1,4 +1,4 @@
-import { getCurrentUser, getUserData, signInWithEmail, signOutUser, signUpNewUser } from "@/auth/auth";
+import { signInWithEmail, signOutUser, signUpNewUser } from "@/auth/auth";
 import { toMessage } from "@/lib/errors";
 import { Action, InitialState } from "@/types/auth";
 import supabase from "@/utils/supabase";
@@ -10,7 +10,6 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useReducer,
 } from "react";
 

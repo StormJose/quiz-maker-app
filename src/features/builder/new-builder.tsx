@@ -8,7 +8,6 @@ import { QuestionEditor } from "./question-editor.tsx";
 import { QuestionToolbox } from "./question-toolbox.tsx";
 
 
-// ─── Root Builder ─────────────────────────────────────────────────────────────
 export default function NewBuilder() {
   const {
     status,
@@ -21,7 +20,7 @@ export default function NewBuilder() {
     saveDraft
   } = useBuilder();
 
-  const onRestoreAction = (quiz?: Quiz): void => setCurrentQuiz(quiz, numQuizzes) ;
+  const onRestoreAction = (quiz?: Quiz): void => setCurrentQuiz(quiz, numQuizzes)
   const onSaveDraftAction = (status?: any): void => saveDraft(status)
   const { savedDraft } = useAutoSaveQuiz(
     currentQuiz,
@@ -45,7 +44,9 @@ export default function NewBuilder() {
 
   return (
     <div className="flex flex-col h-screen bg-background">
-     
+      <div>
+   
+      </div>
       {/* Top bar */}
       <header className="flex items-center gap-4 px-6 py-3 border-b border-border bg-card shrink-0">
         <input

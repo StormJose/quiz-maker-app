@@ -6,7 +6,7 @@ const areEqual = (a: Quiz, b: Quiz) => JSON.stringify(a) === JSON.stringify(b);
 
 
 export function useAutoSaveQuiz(quizData: Quiz, 
-  onRestore: () => void, 
+  onRestoreAction: (quiz: Quiz) => void, 
   status: string, 
   persist: boolean, 
   handleInsertQuiz: (quizData: Quiz) => void, 
@@ -25,7 +25,7 @@ export function useAutoSaveQuiz(quizData: Quiz,
 
     if (savedDraft) {
       const parsed = JSON.parse(savedDraft);
-      onRestore();
+      onRestoreAction(parsed);
       setDraft(parsed); 
       onSaveDraft();
       setHasRestored(true);
@@ -55,7 +55,10 @@ export function useAutoSaveQuiz(quizData: Quiz,
   ///////////////////////////////////////////////////
   useEffect(() => {    
     if (status !== "ready" || !draft || !hasRestored || !isOnline) return;
+    console.log(status, draft, hasRestored, isOnline )
     if (areEqual(draft, JSON.parse(lastSyncedRef.current || "{}"))) return;
+    console.log(draft, lastSyncedRef)
+    console.log("status: ",status)
     const timeout = setTimeout(async () => {
       try {
         if (draft?.quizId && persist) {

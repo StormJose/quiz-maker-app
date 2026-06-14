@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/ui/input";
 import { Form, NavLink, useNavigate } from "react-router";
-import Button from "@/ui/Button";
+import { Button } from "@/components/ui/button";
 
-export default function Register() {
+export default function SignUp() {
   const { error, currentUser, signUp, dispatch } = useAuth();
 
   const navigate = useNavigate();
@@ -97,8 +97,8 @@ export default function Register() {
 
       <Button
         onClick={handleSubmit}
-        styles={"standard"}
-        additionalStyles={"justify-center px-4 py-1.5"}>
+        intent={"standard"}
+        className={"justify-center px-4 py-1.5"}>
         Iniciar
       </Button>
     </Form>

@@ -1,5 +1,5 @@
+import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router";
-import Button from "./Button";
 
 
 export default function NotFound() {
@@ -12,9 +12,8 @@ export default function NotFound() {
 
         <h3 className="text-xl font-bold">Página não encontrada </h3>
         <Button
-
-          styles={"standard"}
-          additionalStyles={"flex justify-center px-3 py-2.5"}
+          intent={"standard"}
+          className={"flex justify-center px-3 py-2.5"}
           onClick={() => navigate("/")}>
           Voltar à Página Inicial
         </Button>

@@ -1,9 +1,10 @@
-import { useBuilder } from "@/store/builderStore";
-import { Question } from "@/types/questions";
+import { useState } from "react";
 import { closestCenter, DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { QuestionItemSkeleton } from "@/skeletons/question-sidebar-item-skeleton";
+import { useBuilder } from "@/store/builderStore";
+import { Question } from "@/types/questions";
 import { GripVertical } from "lucide-react";
-import { useState } from "react";
 
 interface SortableQuestionCardTypes {
     question: Question;
@@ -19,13 +20,15 @@ function SortableQuestionCard({ question, isActive, onClick, isDragOverlay }: So
     setNodeRef,
     transition,
     isDragging,
-  } = useSortable({ id: question.questionId });
+  } = useSortable({ id: question?.questionId });
 
   const style = {
     transition,
     opacity: isDragging ? 0 : 1,
-   
+    
   };
+
+  if (!question)  return <QuestionItemSkeleton/>
 
   return (
     <div
@@ -40,7 +43,7 @@ function SortableQuestionCard({ question, isActive, onClick, isDragOverlay }: So
         group relative flex items-start gap-2 rounded-lg border px-3 py-2.5 cursor-pointer
         transition-all duration-150 select-none outline-none
         focus-visible:ring-2 focus-visible:ring-ring
-        ${isDragOverlay ? "rotate-1 scale-[1.02] opacity-0 backdrop-blur-2xl" : ""}
+        ${isDragOverlay ? "scale-[1.02] opacity-0 backdrop-blur-2xl" : ""}
         ${
           isActive
             ? "border-primary bg-primary/5 shadow-sm"
@@ -117,7 +120,6 @@ export function QuestionsSidebar() {
   function handleSelectQuestion(question: Question) {
     setCurQuestion(question)
   }
-
   return (
     <aside className="flex flex-col w-64 shrink-0 border-r border-border bg-card h-full">
       {/* Header */}

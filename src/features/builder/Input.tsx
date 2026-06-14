@@ -8,12 +8,10 @@ import { useBuilder } from "@/store/builderStore";
 
 interface InputProps {
   item: Answer;
-  active: boolean;
-  listeners: () => void
 }
 
 // TO DO: Apply drag n' drop functionality to the answers
-export default function Input({ item, active, listeners }: InputProps) {
+export default function Input({ item }: InputProps) {
   const { curQuestion, updateQuestion, handleDeleteAnswer, setCorrectAnswer } = useBuilder();
   const [input, setInput] = useState<string>(item.content ?? "");
 
@@ -80,7 +78,7 @@ export default function Input({ item, active, listeners }: InputProps) {
       <button
         className={"draggable-btn cursor-grab"}
         type={"button"}
-        {...listeners}>
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"

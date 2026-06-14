@@ -1,6 +1,6 @@
 
-import { Input } from "@/components/ui/input";
-import Button from "@/ui/Button";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/ui/input";
 
 
 export default function Settings() {
@@ -10,9 +10,7 @@ export default function Settings() {
         <label className="font-bold">Nome de usuário</label>
         <Input />
       </div>
-
-
-      <Button additionalStyles={"self-start"} styles={"standard"}>Salvar alterações</Button>
+      <Button className={"self-start"} intent={"standard"}>Salvar alterações</Button>
     </div>
   );
 }

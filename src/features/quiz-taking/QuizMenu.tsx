@@ -1,9 +1,9 @@
 
 import { useState } from 'react';
-import Button from '../../ui/Button';
 import Timer from './Timer';
 import { useNavigate } from 'react-router';
 import { useQuizzes } from '@/store/quizzesStore';
+import { Button } from '@/components/ui/button';
 
 
 
@@ -11,7 +11,7 @@ import { useQuizzes } from '@/store/quizzesStore';
 export default function QuizMenu() {
 
 
-    const { resetQuiz, currentQuiz } = useQuizzes();
+    const { resetQuiz } = useQuizzes();
     const navigate = useNavigate()
     const [open, setOpen] = useState(false);
     function handleOpenMenu() {
@@ -25,9 +25,9 @@ export default function QuizMenu() {
     return (
       <div className="flex items-center gap-2">
         <Button
-          styles={"alternate"}
+          intent={"alternate"}
           onClick={handleOpenMenu}
-          additionalStyles={"p-3"}>
+          className={"p-3"}>
           {open ? (
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -66,8 +66,8 @@ export default function QuizMenu() {
           data-state={!open && "close"}>
           <Button
             onClick={handleLeaveQuiz}
-            styles={"cancel"}
-            additionalStyles={"p-3"}>
+            intent={"cancel"}
+            className={"p-3"}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"

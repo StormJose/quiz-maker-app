@@ -1,18 +1,20 @@
 import { useEffect } from "react";
 import {
+  Link,
   redirect,
   useLoaderData,
   useNavigate,
-  useNavigation,
 } from "react-router";
 import { useQuizzes } from "../../store/quizzesStore";
 import { motion } from "framer-motion";
 import QuizItem from "./QuizItem";
-import Button from "../../ui/Button";
 import { Plus } from "lucide-react";
 import { Heading } from "@/ui/Heading";
 import { fetchQuizzes } from "@/api/supabaseApi";
 import { getCurrentUser } from "@/auth/auth";
+import { Button } from "@/components/ui/button";
+import { Quiz } from "@/types/quiz";
+import ConfirmAction from "@/ui/dialogs/confirm-action-dialog";
 
 export default function AllQuizzes() {
   const navigate = useNavigate();
@@ -33,8 +35,10 @@ export default function AllQuizzes() {
 
       <header className="py-3 flex justify-end sticky top-4 z-40 bg-white rounded-md">
         {quizzes.length > 0 && (
-          <Button to="/quiz/new" styles={"standard"} additionalStyles={"p-2"}>
+          <Button  intent={"standard"} className={"p-2"}>
+            <Link to="/quiz/new">
             <Plus />
+            </Link>
           </Button>
         )}
       </header>
@@ -42,16 +46,16 @@ export default function AllQuizzes() {
         <div className="flex flex-col gap-5 items-start">
           <h3>Nenhum quiz disponível. Que tal criar o seu próprio?</h3>
           <Button
-            styles={"standard"}
+            intent={"standard"}
             onClick={() => navigate("/quiz/new")}
-            additionalStyles={"px-4 py-1.5"}>
+            className={"px-4 py-1.5"}>
             Criar quiz
           </Button>
         </div>
       )}
 
       <div className="grid md:grid-flow-col sm:grid-cols-2  md:grid-cols-3 sm:gap-x-3 gap-y-4 gap-x-3">
-        {quizzes?.map((quiz) => (
+        {quizzes?.map((quiz: Quiz) => (
           <motion.div
             key={quiz.quizId}
             layoutId={`item-${quiz.quizId}`}
@@ -60,6 +64,7 @@ export default function AllQuizzes() {
           </motion.div>
         ))}
       </div>
+      <ConfirmAction/>
     </div>
   );
 }
@@ -69,8 +74,9 @@ export async function loader() {
   if (!session) {
     redirect("/notFound");
   }
+  if (!session.user) return
 
-  const quizzes = (await fetchQuizzes(session?.user.id)) ?? [];
+  const quizzes = (await fetchQuizzes(session.user.id)) ?? [];
 
   return quizzes;
 }

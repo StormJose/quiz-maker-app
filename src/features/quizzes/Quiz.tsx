@@ -1,16 +1,19 @@
 import { useEffect } from "react";
 import { useQuizzes } from "../../store/quizzesStore";
-import Button from "../../ui/Button";
-import { useLoaderData, useSearchParams } from "react-router";
+import { Link, useLoaderData } from "react-router";
 import { fetchQuiz } from "@/api/supabaseApi.js";
+import { Button } from "@/components/ui/button";
+import { QuizItemSkeleton } from "@/skeletons/quiz-item-skeleton";
 
 export default function Quiz() {
-  const data = useLoaderData();
+  const quiz = useLoaderData();
   const { status, currentQuiz, setCurrentQuiz, startQuiz } = useQuizzes();
 
   useEffect(() => {
-    setCurrentQuiz(data);
-  }, [data]);
+    setCurrentQuiz(quiz)
+  }, [quiz?.id])
+
+  if (status !== "ready") return <QuizItemSkeleton/>
 
   return (
     <div className=" flex justify-between px-4 py-10">
@@ -21,19 +24,21 @@ export default function Quiz() {
       <div>
         <Button
           onClick={startQuiz}
-          styles={"standard"}
-          to={`questions/0`}>
+          intent={"standard"}
+        >
+          <Link to={`questions/${currentQuiz?.questions[0].questionId}`}>
           Iniciar quiz
+          </Link>
         </Button>
       </div>
     </div>
   );
 }
 
-export async function loader({ params }) {
+export async function loader({ params }: {params: {quizId: string}}) {
   const { quizId } = params;
 
-  const data = await fetchQuiz(quizId);
+  const quiz = await fetchQuiz(quizId);
 
-  return data;
+  return quiz;
 }

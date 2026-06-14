@@ -1,7 +1,7 @@
-import { redirect, useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { useQuizzes } from "../../store/quizzesStore";
-import Button from "../../ui/Button";
 import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
 
 function QuizResults() {
 
@@ -29,19 +29,16 @@ function QuizResults() {
 
         <div className="flex  gap-2 items-start  mt-auto">
           <Button
-            styles={"standard"}
-            onClick={() =>
-              navigate(
-                `/quizzes/${currentQuiz.id}/questions/${currentQuiz.questions[0].id}`
-              )
-            }
-            additionalStyles={"py-1.5 px-3"}>
+            intent={"standard"}
+            >
+              <Link to={`/quizzes/${currentQuiz?.quizId}/questions/${currentQuiz?.questions[0].questionId}`}>
+              </Link>
             Reiniciar Quiz
           </Button>
           <Button
-            styles={"alternate"}
+            intent={"alternate"}
             onClick={() => navigate("/")}
-            additionalStyles={"py-1.5 px-3"}>
+            >
             Sair
           </Button>
         </div>

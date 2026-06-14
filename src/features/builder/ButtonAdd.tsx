@@ -1,5 +1,3 @@
-import add from "../../assets/add-circle-outline.svg"
-
 
 export default function ButtonAdd({onClick}) {
   return (
