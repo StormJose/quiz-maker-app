@@ -3,7 +3,6 @@ import { Link, Outlet, useLoaderData, useNavigate, useNavigation } from "react-r
 import { fetchNumOfQuizzes, fetchQuiz, fetchQuizzes } from "@/api/supabaseApi";
 import Sidebar from "./sidebar"
 import { useBuilder } from "@/store/builderStore"
-import { useQuizzes } from "@/store/quizzesStore";
 import { useWarningDialog } from "@/hooks/useWarningDialog";
 import { useEffect } from "react";
 import BuilderSkeleton from "@/skeletons/BuilderSkeleton";
@@ -22,7 +21,7 @@ export default function BuilderLayout() {
 
   useEffect(() => {
     if (limitReached) {
-      console.log("passed")
+
       dispatch({
         type: "openDialog",
         payload: {

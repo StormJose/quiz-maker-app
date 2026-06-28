@@ -71,7 +71,6 @@ function useWarningDialogInternal() {
       showDialog && currentLocation.pathname !== nextLocation.pathname,
     [showDialog]
   );
-  console.log("showDialog: ", showDialog)
   const blocker = useBlocker(shouldBlock);
   return { showDialog, dialogLabel, dialogMessage, handler, data, blocker, dispatch };
 }

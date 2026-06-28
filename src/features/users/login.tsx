@@ -87,6 +87,7 @@ export default function Login() {
        <Button
          onClick={handleSubmit}
          intent={"standard"}
+         className="justify-center"
          isLoading={status === "loading"}
      >
          Entrar

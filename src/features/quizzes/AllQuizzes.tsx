@@ -54,12 +54,12 @@ export default function AllQuizzes() {
         </div>
       )}
 
-      <div className="grid md:grid-flow-col sm:grid-cols-2  md:grid-cols-3 sm:gap-x-3 gap-y-4 gap-x-3">
+      <div className="grid md:grid-flow-col mt-2 sm:grid-cols-2  md:grid-cols-3 sm:gap-x-3 gap-y-4 gap-x-3">
         {quizzes?.map((quiz: Quiz) => (
           <motion.div
             key={quiz.quizId}
             layoutId={`item-${quiz.quizId}`}
-            className="grid grid-flow-col  border-[1.55px] border-grey-tint bg-gray rounded-2xl">
+            className="grid grid-flow-col  border-grey-tint rounded-2xl">
             <QuizItem key={quiz.quizId} quiz={quiz} />
           </motion.div>
         ))}

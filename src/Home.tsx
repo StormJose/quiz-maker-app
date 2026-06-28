@@ -15,10 +15,11 @@ export default function Home() {
         </Button>
 
         <Button
-          to="/quiz/new"
-          styles={"standard"}
-          additionalStyles={"px-4 py-1.5"}>
-          Criar quiz
+          intent={"standard"}
+          className={"px-4 py-1.5"}>
+            <Link to={"/quiz/new"}>
+              Criar quiz
+            </Link>
         </Button>
       </div>
     </div>

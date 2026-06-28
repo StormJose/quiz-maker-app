@@ -19,9 +19,7 @@ export default function AppLayout() {
       <div className="font-noto ">
         <Header />
         <div className="grid grid-cols-2 mx-8">
-          <div className="py-4">
-            <BackLink />
-          </div>
+    
 
         </div>
         <main className="grid lg:max-w-[1440px] mx-auto my-0 ">
