@@ -4,6 +4,7 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Loader2Icon } from "lucide-react";
 import { cn } from "../../utils"; 
+import { Link } from "react-router";
 
 const buttonVariants = cva(
   "inline-flex items-center gap-2 font-semibold cursor-pointer relative overflow-hidden rounded-full transition-all disabled:opacity-50 disabled:pointer-events-none",
@@ -42,6 +43,8 @@ interface ButtonProps
   isLoading?: boolean;
   tooltip?: string;
   tooltipPosition?: "top" | "bottom";
+  to?: string;
+  onClick?: (e: React.MouseEvent<HTMLElement>) => void
 }
 
 export function Button({
@@ -55,6 +58,7 @@ export function Button({
   tooltipPosition = "top",
   children,
   onClick,
+  to,
   ...props
 }: ButtonProps) {
   const [ripples, setRipples] = useState<RippleEntry[]>([]);
@@ -75,6 +79,13 @@ export function Button({
       },
     ]);
   }
+
+  if (to) return <Link to={to} className={cn(buttonVariants({intent, size}), 
+  "group/button", 
+    className)} 
+    onClick={(e: React.MouseEvent<HTMLAnchorElement>) => onClick?.(e)}>
+    {children}
+  </Link>
 
   return (
     <Comp

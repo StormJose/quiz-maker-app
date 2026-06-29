@@ -23,22 +23,10 @@ const ringTransition = { duration: 1.2, repeat: Infinity, ease: "easeOut" } as c
 type MenuOption = {
   id: number;
   label: string;
- icon: ReactElement
+ icon: ReactElement;
+ action: (arg: string) => Promise<void> | void
 }
 
-const menuOptions: MenuOption[] = [
-  {
-    id: 1,
-    label: "Compartilhar",
-    icon: <Share className="w-4 h-4" />
-  },
-  {
-    id: 2,
-    label: "Excluir",
-    icon: <Trash className="w-4 h-4" />
-    
-  }
-];
 
 export default function QuizItem({ quiz }: QuizItemProps) {
   const navigate = useNavigate();
@@ -46,10 +34,24 @@ export default function QuizItem({ quiz }: QuizItemProps) {
   const { dispatch } = useWarningDialog();
   const [hovered, setHovered] = useState(false);
   const numQuestions = quiz.questions.length;
-
+  
+  const menuOptions: MenuOption[] = [
+    {
+      id: 1,
+      label: "Compartilhar",
+      icon: <Share className="w-4 h-4" />,
+      action: () => {}
+    },
+    {
+      id: 2,
+      label: "Excluir",
+      icon: <Trash className="w-4 h-4" />,
+      action: (id) => dispatch({type: "confirmAction", payload: {dialogLabel: "Excluir Quiz", dialogMessage: "Tem certeza de que deseja excluir Quiz?", handler: () => handleDeleteQuiz(id), data: id }})   
+    }
+  ];
   return (
     <motion.div
-      layout
+    layout
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -6 }}
@@ -94,15 +96,16 @@ export default function QuizItem({ quiz }: QuizItemProps) {
       </div>
 
       <div className="flex items-center self-start gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+        
         <Button
           type="button"
           tooltip="Edit Quiz"
+          to={`/quiz/${quiz.quizId}/edit`}
           onClick={(e) => e?.stopPropagation()}
         >
-          <Link to={`/quiz/${quiz.quizId}/edit`}>
             <Pen width={18} />
-          </Link>
         </Button>
+      
 
         <DropdownMenu.Root>
           <DropdownMenu.Trigger asChild>
@@ -124,16 +127,23 @@ export default function QuizItem({ quiz }: QuizItemProps) {
                 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95
                 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95"
             >
-              {menuOptions.map((option, index) => (
+              {menuOptions.map(({label, icon, action}, index) => (
                 <>
-                  {option.label === 'Excluir' &&  <div className="h-[1px] w-full bg-gray-300 my-2"></div>}
+                  {label === 'Excluir' &&  <div className="h-[1px] w-full bg-gray-300 my-2"></div>}
                 <DropdownMenu.Item
                   key={index}
+                  onClick={(e) => {
+                    if (label === 'Excluir') {
+             
+                      action(quiz.quizId)
+                    }
+                    e?.stopPropagation()
+                  }}
                   className={` rounded-xl text-sm px-3 py-4 cursor-pointer
                     flex items-center gap-2
                     hover:bg-gray-100 focus:bg-gray-100 focus:outline-none
-                    data-[highlighted]:bg-gray-100 ${option.label === 'Excluir' ? 'text-destructive ' : 'text-gray-700'} `}
-                    >{option.icon} {option.label}</DropdownMenu.Item>
+                    data-[highlighted]:bg-gray-100 ${label === 'Excluir' ? 'text-destructive ' : 'text-gray-700'} `}
+                    >{icon} {label}</DropdownMenu.Item>
                     </>
               ))}
            
