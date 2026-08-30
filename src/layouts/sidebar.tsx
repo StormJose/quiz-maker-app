@@ -1,10 +1,9 @@
 import { useBuilder } from "@/store/builderStore";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import {
-  FlaskConical,
-  Hammer,
   PanelLeftClose,
   PanelLeftOpen,
+  Pen,
   Settings,
 } from "lucide-react";
 import { useState } from "react";
@@ -14,31 +13,26 @@ export default function Sidebar() {
   const location = useLocation();
   const { quizId } = useParams();
   const { status, currentQuiz } = useBuilder();
-
   const [collapsed, setCollapsed] = useState(false);
-
   const pathnameArr = location.pathname.split("/");
   const curRoute = pathnameArr[pathnameArr.length - 1];
 
   const menus = [
+
     {
       id: 1,
-      title: "Construir Quiz",
-      path: `/quiz/${quizId}/edit`,
-      icon: <Hammer />,
+      title: "Edição",
+      path: 'edit',
+      icon: <Pen/>
     },
+
     {
       id: 2,
-      title: "Definições",
+      title: "Configurações",
       path: "settings",
-      icon: <Settings />,
-    },
-    {
-      id: 3,
-      title: "Preview",
-      path: "preview",
-      icon: <FlaskConical />,
-    },
+      icon: <Settings/>
+    }
+
   ];
 
   const numQuestions = currentQuiz?.questions.length;
@@ -51,6 +45,8 @@ export default function Sidebar() {
         className={`flex flex-col gap-4 transition-all duration-300 ease-in-out ${
           collapsed ? "w-14" : "w-56"
         }`}>
+          <div className="flex items-center gap-2">
+
         <button
           onClick={() => setCollapsed((c) => !c)}
           className="w-min cursor-pointer text-start py-2 px-4 rounded-lg hover:bg-gray-100 text-secondary-foreground focus-visible:ring-2 focus-visible:ring-gray-400 focus:outline-none"
@@ -64,12 +60,13 @@ export default function Sidebar() {
         <div>
           {!collapsed && (
             <>
-              <h2 className="font-bold text-2xl mb-2 whitespace-nowrap">
+              <h2 className="font-bold text-2xl whitespace-nowrap">
                 Quiz Builder
               </h2>
         
             </>
           )}
+          </div>
         </div>
         {/*  */}
 
@@ -78,8 +75,11 @@ export default function Sidebar() {
           {menus.map((menu) => {
             const isActive =
               curRoute === menu.path ||
-              (curRoute === `edit` && menu.path === `/quiz/${quizId}/edit`) ||
-              (curRoute === "new" && menu.path === "");
+              curRoute.includes('/edit') && menu.path === 'edit'
+              || curRoute.includes('new') && menu.path === 'edit'
+              || curRoute.includes('preview') && menu.path === 'edit'
+             
+            const pathTo = menu.path === 'edit' || menu.path === 'preview' ? `/quiz/${currentQuiz.quizId}/edit` : menu.path
 
             const linkClass = `flex items-center gap-1.5 font-bold rounded-lg px-4 py-1.5 transition-colors
               ${collapsed ? "justify-center px-0" : "justify-start"}
@@ -89,7 +89,7 @@ export default function Sidebar() {
               <li key={menu.id}>
                 <Tooltip.Root>
                   <Tooltip.Trigger asChild>
-                    <NavLink to={menu.path} className={linkClass}>
+                    <NavLink to={pathTo} className={linkClass}>
                       <span className="shrink-0">{menu.icon}</span>
                       {!collapsed && (
                         <span className="truncate">{menu.title}</span>
@@ -117,7 +117,7 @@ export default function Sidebar() {
         </ul>
         {/*  */}
         <div
-          className={`flex flex-col items-center ${!collapsed ? "items-start" : ""} space-y-4 ${status === "loading" && "opacity-45"} `}>
+          className={`flex flex-col items-center ${!collapsed ? "items-start" : ""} space-y-4 `}>
           <p>
             {!collapsed && <span>N° de questões:</span>}
             <b> {numQuestions}</b>
@@ -134,7 +134,7 @@ export default function Sidebar() {
             {collapsed && "min"}
           </p>
         </div>
-        {/*  */}
+    
       </aside>
     </Tooltip.Provider>
   );

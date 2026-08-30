@@ -1,23 +1,23 @@
 
-import { Link, Outlet, useLoaderData, useNavigate, useNavigation } from "react-router"
+import { Navigate, NavLink, Outlet, useLoaderData, useLocation, useNavigate, useNavigation } from "react-router"
 import { fetchNumOfQuizzes, fetchQuiz, fetchQuizzes } from "@/api/supabaseApi";
 import Sidebar from "./sidebar"
 import { useBuilder } from "@/store/builderStore"
 import { useWarningDialog } from "@/hooks/useWarningDialog";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import BuilderSkeleton from "@/skeletons/BuilderSkeleton";
 import { QuizItemSkeleton } from "@/skeletons/quiz-item-skeleton";
 import { getCurrentUser } from "@/auth/auth";
 import { Button } from "@/components/ui/button";
-import WarningDialog from "@/ui/dialogs/warning-dialog";
+import FloatingMenu from "@/ui/menus/floating-menu";
 
 
 export default function BuilderLayout() {
   const navigation = useNavigation();
+  const navigate = useNavigate();
   const { existingQuiz, quizzes, limitReached } = useLoaderData();
-  const { status, setCurrentQuiz} = useBuilder();
-
-   const { dispatch } = useWarningDialog()
+  const { status, setCurrentQuiz, resetBuilder} = useBuilder();
+  const { dispatch } = useWarningDialog()
 
   useEffect(() => {
     if (limitReached) {
@@ -36,6 +36,13 @@ export default function BuilderLayout() {
     setCurrentQuiz(existingQuiz, quizzes?.length)
       
   }, [existingQuiz?.quizId]);
+
+
+
+  function handleLeaveBuilder() {
+    navigate('/quizzes')
+    resetBuilder()
+  }
   
   if (limitReached) return 
  
@@ -43,12 +50,15 @@ export default function BuilderLayout() {
 
   return (
     <div >
-      <div className="mb-4">
-      <Button intent={"alternate"} size={"lg"}>
-            <Link to={"/quizzes"} >
+      <div className="mb-4 flex items-center gap-2">
+          <Button  intent={"alternate"}  size={"lg"} onClick={() => handleLeaveBuilder()} >
               Voltar para Quizzes
-            </Link>
-            </Button>
+          </Button>
+      {
+        !location.pathname.includes("/settings") &&
+        <FloatingMenu/>
+      }
+            
       </div>
   
     <div
@@ -68,6 +78,7 @@ export default function BuilderLayout() {
           <Outlet />
         )}
       </div>
+   
     </div>
     </div>
   );
