@@ -1,47 +1,27 @@
 import { useState } from "react";
-import { useParams } from "react-router";
-import { useAutoSaveQuiz } from "../../hooks/useAutoSave"
 import BuilderSkeleton from "@/skeletons/BuilderSkeleton";
 import { useBuilder } from "@/store/builderStore";
 import { Button } from "@/components/ui/button";
 
 export default function Preview() {
-  const { quizId } = useParams();
   const [curQuestion, setCurQuestion] = useState(0)
 
   const {
     isLoading,
-    status,
-    currentQuiz,
-    setCurrentQuiz
+    currentQuiz
   } = useBuilder();
 
-  // Loading quiz draft
-  const onRestoreAction = (quiz) =>
-    setCurrentQuiz(quiz, null);
-
-  const { draftStatus, savedDraft } = useAutoSaveQuiz(
-    quizId,
-    currentQuiz,
-    onRestoreAction,
-    status
-  );
 
    function handleNextQuestion() {
+    if (currentQuiz.questions.length - 1 == curQuestion) return
     setCurQuestion(cur => cur + 1)
    }
 
    function handlePreviousQuestion() {
+    if (curQuestion == 0 ) return
      setCurQuestion(cur => cur - 1)
    }
 
-  function beforeUnloadHandler(e) {
-    e.preventDefault();
-
-    e.returnValue = true;
-  }
-
-  window.addEventListener("beforeunload", beforeUnloadHandler);
 
   if (currentQuiz === null) return <div>Erro ao carregar quiz</div>;
 
@@ -49,7 +29,8 @@ export default function Preview() {
 
 
   return (
-    <div className="px-4 flex flex-col gap-12">
+    <div className="px-4 flex flex-col gap-12 relative">
+     
       <div>
 
       <h3 className="mt-12 mb-auto text-center">
@@ -77,6 +58,7 @@ export default function Preview() {
           Próxima
         </Button>
       </footer>
+         
     </div>
   );
 }

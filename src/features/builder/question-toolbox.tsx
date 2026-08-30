@@ -18,17 +18,6 @@ export function QuestionToolbox () {
   
   const { curQuestion, currentQuiz, addQuestion, addTrueOrFalseQuestion, cloneQuestion, handleDeleteQuestion, } = useBuilder();
   
-  function handleAddQuestion() {
-    addQuestion()
-  }
-  
-  function handleAddTrueOrFalseQuestion() {
-    addTrueOrFalseQuestion()
-  }
-  
-  function handleClone() {
-    cloneQuestion()
-  }
   
   async function handleDelete() {
     try {
@@ -46,7 +35,7 @@ export function QuestionToolbox () {
       id: 1,
       label: 'Múltipla Escolha',
       icon: <List size={13} />,
-      action: handleAddQuestion
+      action: addQuestion
     },{
       id: 2,
       label: 'Verdadeiro ou Falso',
@@ -75,7 +64,7 @@ export function QuestionToolbox () {
           type="button"
           intent="alternate"
           size="sm"
-          disabled={!canDelete}
+          disabled={label === 'Excluir'  && !canDelete}
           className={`h-8 justify-start gap-2 text-xs font-medium hover:bg-tint border-[1.55px] border-tin ${label === 'Excluir' && 'text-destructive hover:text-destructive hover:border-destructive/50 hover:bg-destructive/20'}`}
           onClick={() => action()}>
           {icon}

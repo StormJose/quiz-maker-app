@@ -6,6 +6,8 @@ import { Quiz } from "@/types/quiz.ts";
 import { QuestionsSidebar } from "./questions-sidebar.tsx";
 import { QuestionEditor } from "./question-editor.tsx";
 import { QuestionToolbox } from "./question-toolbox.tsx";
+import { Switch } from "@/components/ui/switch.tsx";
+import FloatingMenu from "@/ui/menus/floating-menu.tsx";
 
 
 export default function NewBuilder() {
@@ -41,12 +43,12 @@ export default function NewBuilder() {
   function handleTitleBlur() {
     setTitle(quizTitle)
   }
-
+  
+  
   return (
-    <div className="flex flex-col h-screen bg-background">
-      <div>
-   
-      </div>
+    <div className="flex flex-col h-screen bg-background relative">
+
+ 
       {/* Top bar */}
       <header className="flex items-center gap-4 px-6 py-3 border-b border-border bg-card shrink-0">
         <input
@@ -74,7 +76,6 @@ export default function NewBuilder() {
         </div>
       </div>
       <Toaster position="bottom-center" />
-   
     </div>
   );
   
