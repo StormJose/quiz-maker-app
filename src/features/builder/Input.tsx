@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { useState } from "react";
 import ButtonDelete from "./ButtonDelete";
 import AnimatedCheckbox from "@/components/ui/checkbox";
 import { Answer } from "@/types/answers";

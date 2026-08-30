@@ -1,6 +1,6 @@
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { motion } from "framer-motion";
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import { useQuizzes } from "../../store/quizzesStore";
 import { Ellipsis, Pen, Share, Timer, Trash } from "lucide-react";
 import { Heading } from "@/ui/Heading";
@@ -67,13 +67,13 @@ export default function QuizItem({ quiz }: QuizItemProps) {
         variants={ringVariants}
         animate={hovered ? "pulse" : "idle"}
         transition={hovered ? ringTransition : { duration: 0.15 }}
-        className="absolute inset-0 rounded-md border border-[#615FFF] pointer-events-none"
+        className="absolute inset-0 rounded-md border border-main pointer-events-none"
       />
       <motion.div
         variants={ringVariants}
         animate={hovered ? "pulse" : "idle"}
         transition={hovered ? { ...ringTransition, delay: 0.6 } : { duration: 0.15 }}
-        className="absolute inset-0 rounded-md border border-[#615FFF] pointer-events-none"
+        className="absolute inset-0 rounded-md border border-main pointer-events-none"
       />
 
       <div className="w-full flex items-center justify-between">

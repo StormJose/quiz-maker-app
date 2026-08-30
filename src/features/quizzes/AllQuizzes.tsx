@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import {
-  Link,
   redirect,
   useLoaderData,
   useNavigate,
@@ -27,6 +26,9 @@ export default function AllQuizzes() {
     setQuizzes(quizzes);
   }, [quizzes]);
 
+
+  if (!quizzes) return
+
   return (
     <div className={`flex flex-col px-2 mx-8`}>
       <div className="mb-8">
@@ -35,10 +37,8 @@ export default function AllQuizzes() {
 
       <header className="py-3 flex justify-end sticky top-4 z-40 bg-white rounded-md">
         {quizzes.length > 0 && (
-          <Button  intent={"standard"} className={"p-2"}>
-            <Link to="/quiz/new">
+          <Button to="/quiz/new" intent={"standard"} className={"p-2"}>
             <Plus />
-            </Link>
           </Button>
         )}
       </header>
@@ -77,6 +77,6 @@ export async function loader() {
   if (!session.user) return
 
   const quizzes = (await fetchQuizzes(session.user.id)) ?? [];
-
+  console.log(quizzes)
   return quizzes;
 }

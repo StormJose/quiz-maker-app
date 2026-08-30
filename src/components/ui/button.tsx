@@ -12,7 +12,7 @@ const buttonVariants = cva(
     variants: {
       intent: {
         standard: "bg-main text-gray-100 hover:bg-indigo-400",
-        alternate: "bg-gray text-gray-950 hover:bg-neutral-200",
+        alternate: "bg-gray-100 text-gray-950 hover:bg-neutral-200",
         cancel: "bg-gray-100 text-red-600 hover:bg-red-200",
       },
       size: {

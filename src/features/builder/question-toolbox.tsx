@@ -1,4 +1,3 @@
-import { deleteQuestion } from "@/api/supabaseApi";
 import { Button } from "@/components/ui/button";
 import { useBuilder } from "@/store/builderStore";
 import { feedback } from "@/utils/toast-utils";
@@ -16,7 +15,7 @@ export function QuestionToolbox () {
   }
 
   
-  const { curQuestion, currentQuiz, addQuestion, addTrueOrFalseQuestion, cloneQuestion, handleDeleteQuestion, } = useBuilder();
+  const { curQuestion, currentQuiz, addQuestion, addTrueOrFalseQuestion, cloneQuestion, handleDeleteQuestion } = useBuilder();
   
   
   async function handleDelete() {
@@ -65,7 +64,7 @@ export function QuestionToolbox () {
           intent="alternate"
           size="sm"
           disabled={label === 'Excluir'  && !canDelete}
-          className={`h-8 justify-start gap-2 text-xs font-medium hover:bg-tint border-[1.55px] border-tin ${label === 'Excluir' && 'text-destructive hover:text-destructive hover:border-destructive/50 hover:bg-destructive/20'}`}
+          className={`h-8 justify-start gap-2 text-xs font-medium hover:bg-white border-[1.25px] border-tin ${label === 'Excluir' && 'text-destructive hover:text-destructive hover:border-destructive/50 hover:bg-destructive/20'}`}
           onClick={() => action()}>
           {icon}
           {label}

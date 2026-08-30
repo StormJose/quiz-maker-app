@@ -9,7 +9,7 @@ export default function BackLink() {
   const resetBuilder = useBuilderStore((s) => s.resetBuilder);
 
   function handleNavigate() {
-    navigate(-1, { replace: true, preventScrollReset: true });
+    navigate(-1);
     resetBuilder();
   }
 

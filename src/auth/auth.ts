@@ -1,11 +1,10 @@
-import { createUser } from "@/api/supabaseApi";
 import supabase from "@/utils/supabase";
 
 
 
 export async function getCurrentUser() {
   try {
-    const { data, error } = await supabase.auth.getUser();
+    const { data } = await supabase.auth.getUser();
 
     return data;
   } catch (error) {
@@ -14,7 +13,7 @@ export async function getCurrentUser() {
   }
 }
 
-export async function getUserData(id) {
+export async function getUserData(id: string) {
   try {
     if (!id) return 
     const { data, error } = await supabase
@@ -32,7 +31,7 @@ export async function getUserData(id) {
   }
 }
 
-export async function signUpNewUser(email, password) {
+export async function signUpNewUser(email: string, password: string) {
   try {
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -53,7 +52,7 @@ export async function signUpNewUser(email, password) {
   }
 }
 
-export async function signInWithEmail(email, password) {
+export async function signInWithEmail(email: string, password: string) {
   try {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -62,7 +61,7 @@ export async function signInWithEmail(email, password) {
 
     if (error) throw error;
 
-    return data;
+    return { data, error };
   } catch (error) {
     console.error(error);
     throw error;

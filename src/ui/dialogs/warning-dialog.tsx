@@ -14,11 +14,8 @@ import { useWarningDialog } from "@/hooks/useWarningDialog";
 
 export default function WarningDialog() {
 
-  const {showDialog, dialogLabel, dialogMessage, dispatch, blocker} = useWarningDialog()
+  const {showDialog, dialogLabel, dialogMessage, dispatch} = useWarningDialog()
   const navigate = useNavigate();
-  function onHandleDismiss() {
-    dispatch({type: "closeDialog"})
-  }
 
   function onHandleClose() {
       dispatch({type: "closeDialog"})

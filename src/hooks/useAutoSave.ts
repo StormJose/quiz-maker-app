@@ -55,9 +55,8 @@ export function useAutoSaveQuiz(quizData: Quiz,
   ///////////////////////////////////////////////////
   useEffect(() => {    
     if (status !== "ready" || !draft || !hasRestored || !isOnline) return;
-    console.log(status, draft, hasRestored, isOnline )
+
     if (areEqual(draft, JSON.parse(lastSyncedRef.current || "{}"))) return;
-    console.log(draft, lastSyncedRef)
     console.log("status: ",status)
     const timeout = setTimeout(async () => {
       try {

@@ -1,10 +1,10 @@
 
-import { Navigate, NavLink, Outlet, useLoaderData, useLocation, useNavigate, useNavigation } from "react-router"
+import { Outlet, useLoaderData , useNavigate, useNavigation, type LoaderFunctionArgs } from "react-router"
 import { fetchNumOfQuizzes, fetchQuiz, fetchQuizzes } from "@/api/supabaseApi";
 import Sidebar from "./sidebar"
 import { useBuilder } from "@/store/builderStore"
 import { useWarningDialog } from "@/hooks/useWarningDialog";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import BuilderSkeleton from "@/skeletons/BuilderSkeleton";
 import { QuizItemSkeleton } from "@/skeletons/quiz-item-skeleton";
 import { getCurrentUser } from "@/auth/auth";
@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import FloatingMenu from "@/ui/menus/floating-menu";
 
 
-export default function BuilderLayout() {
+function BuilderLayout() {
   const navigation = useNavigation();
   const navigate = useNavigate();
   const { existingQuiz, quizzes, limitReached } = useLoaderData();
@@ -84,13 +84,13 @@ export default function BuilderLayout() {
   );
 }
 
-export async function editQuizLoader({ params }: {params: {quizId: string}}) {
+export async function editQuizLoader({ params }: LoaderFunctionArgs) {
   const { quizId } = params;
   const { user } = await getCurrentUser();
 
   // quiz
   const quizzes = user ? await fetchQuizzes(user?.id) : null
-  const existingQuiz = await fetchQuiz(quizId);
+  const existingQuiz = quizId ? await fetchQuiz(quizId) : undefined;
   return {
     existingQuiz,
     quizzes,
@@ -111,3 +111,6 @@ export async function newQuizLoader() {
 
   return { numDrafts, quizzes, limitReached: false };
 }
+
+
+export {BuilderLayout as Component}

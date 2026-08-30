@@ -7,7 +7,10 @@ export type QuizzesStatus = "idle" | "loading" | "onGoing" | "finished" | "ready
 
 interface SelectedAnswer {
   questionId: string;
-  answer: { correct_answer: boolean };
+  answer: { 
+    answerId: string,
+    correctAnswer: boolean 
+  };
 }
 
 interface QuizzesState {
@@ -22,13 +25,14 @@ interface QuizzesState {
   selectedAnswers: SelectedAnswer[];
   numCorrectAnswers: number | null;
 
+
 }
 
 interface QuizzesActions {
   // Data
   setQuizzes: (quizzes: Quiz[]) => void;
   setCurrentQuiz: (quiz: Quiz) => void;
-  setCurQuestion: (question: Question) => void;
+  setCurQuestion: (question: Question | null ) => void;
   setError: (error: unknown) => void;
 
   // Quiz-taking
@@ -56,7 +60,8 @@ const initialState: QuizzesState = {
   pointsPerQuestion: 15,
   totalScore: 0,
   selectedAnswers: [],
-  numCorrectAnswers: null
+  numCorrectAnswers: null,
+
 };
 
 export const useQuizzesStore = create<QuizzesStore>()((set, get) => ({
@@ -65,18 +70,24 @@ export const useQuizzesStore = create<QuizzesStore>()((set, get) => ({
   // ── Data ─────────────────────────────────────────────────────────────────
   setQuizzes: (quizzes) => set({ quizzes, status: "ready" }),
 
-  setCurrentQuiz: (quiz) =>
-    set({ currentQuiz: quiz, curQuestion: quiz?.questions[0] ?? null }),
+  setCurrentQuiz: (quiz) => 
+    set({ currentQuiz: quiz, status: 'ready' }),
 
-  setCurQuestion: (question) => set({ curQuestion: question }),
+  setCurQuestion: (question) => {
+
+    set({ curQuestion: question })},
 
   setError: (error) => set({ error }),
 
   // ── Quiz-taking ───────────────────────────────────────────────────────────
   startQuiz: () =>
-    set((state) => ({
+    set((state) => (
+      {
       timer: (state.currentQuiz?.questions.length ?? 0) * 60,
       status: "onGoing",
+      selectedAnswers: [],
+      numCorrectAnswers: null,
+      totalScore: 0,
     })),
 
   tick: () =>
@@ -95,17 +106,18 @@ export const useQuizzesStore = create<QuizzesStore>()((set, get) => ({
             a.questionId === payload.questionId ? payload : a
           )
         : [...state.selectedAnswers, payload];
+        console.log('selectedAnswer')
       return { selectedAnswers };
     }),
 
   submitQuiz: () =>
     set((state) => {
       const numCorrectAnswers = state.selectedAnswers.filter(
-        (a) => a.answer.correct_answer
+        (a) => a.answer.correctAnswer
       ).length;
+
       return {
-        ...initialState,
-        currentQuiz: state.currentQuiz,
+        status: "finished",
         totalScore: numCorrectAnswers * state.pointsPerQuestion,
         numCorrectAnswers,
       };
@@ -146,6 +158,4 @@ export const useQuizzesStore = create<QuizzesStore>()((set, get) => ({
   },
 }));
 
-export function useQuizzes() {
-  return useQuizzesStore();
-}
+export const useQuizzes = useQuizzesStore

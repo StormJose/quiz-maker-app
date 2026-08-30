@@ -24,7 +24,6 @@ children,
 
   const isLoading = stage === "loading"
   const isDirty = stage === "dirty"
-  const isDone = stage != "dirty"
 
   return (
     <motion.button

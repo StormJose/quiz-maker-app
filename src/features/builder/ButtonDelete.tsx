@@ -1,6 +1,6 @@
 import { MinusCircle } from "lucide-react";
 
-export default function ButtonDelete({ onClick, disabled }) {
+export default function ButtonDelete({ onClick, disabled }: { onClick: () => void; disabled: boolean }) {
   return (
     <button
       type="button"

@@ -8,7 +8,6 @@ import {
 import { Answer } from "@/types/answers";
 import { Quiz } from "@/types/quiz";
 import { Question } from "@/types/questions";
-import { getInitialState } from "@dnd-kit/core/dist/store/reducer.js";
 
 
 export type DraftStatus = "Saving" | "Saved" | "Offline";
@@ -68,6 +67,7 @@ interface BuilderActions {
   toggleTimer: () => void;
   toggleShuffle: () => void;
   toggleCustomScore: () => void;
+  toggleRealTimeAnswer: () => void;
 
   // Draft / save
   saveDraft: (status: DraftStatus) => void;
@@ -396,6 +396,14 @@ export const useBuilderStore = create<BuilderStore>()((set, get) => ({
         
       },
     })),
+
+    toggleRealTimeAnswer: () => 
+      set((state) => ({
+        currentQuiz: {
+          ...state.currentQuiz,
+          realTimeAnswer: !state.currentQuiz.realTimeAnswer
+        }
+      })),
 
   // ── Draft / save ─────────────────────────────────────────────────────────
   saveDraft: (status) =>

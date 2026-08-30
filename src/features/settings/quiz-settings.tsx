@@ -6,7 +6,17 @@ import MultiStageButton from "@/ui/multi-stage-button.tsx";
 import { Toaster } from "react-hot-toast";
 
 
-export default function QuizSettings() {
+interface SettingsList {
+  id: number;
+  handler: () => void;
+  setting: boolean;
+  title: string;
+  description: string;
+}
+
+
+
+function QuizSettings() {
   const {
     isLoading,
     status,
@@ -14,10 +24,19 @@ export default function QuizSettings() {
     toggleTimer,
     toggleShuffle,
     toggleCustomScore,
+    toggleRealTimeAnswer,
     handleUpsertQuizSettings,
   } = useBuilder();
+
+  const settings = {
+    shuffle: currentQuiz.shuffle,
+    customScore: currentQuiz.customScore,
+    enableTimer: currentQuiz.enableTimer,
+    realTimeAnswer: currentQuiz.realTimeAnswer
+  };
+
   
-  const { dirty, Dialog, handleUpdateSettings } = useUnsavedChanges(currentQuiz, status);
+  const { dirty, Dialog, handleUpdateSettings } = useUnsavedChanges(settings, status);
 
   function handleTimer() {
     toggleTimer();
@@ -31,15 +50,52 @@ export default function QuizSettings() {
     toggleCustomScore();
   }
 
+  function handleRealTimeAnswer() {
+    toggleRealTimeAnswer();
+  }
+
+  const settingsList: SettingsList[] = [
+    {
+      id: 1,
+      handler: handleTimer,
+      setting: currentQuiz.enableTimer,
+      title: 'Cronômetro',
+      description: 'Defina um tempo-alvo para a finalização do quiz.'
+    },
+    {
+      id: 2,
+      handler: handleCustomScore,
+      setting: currentQuiz.customScore,
+      title: 'Customizar pontuação',
+      description: ' Ao escolher esta opção, você define a pontuação individual para cada questão, permitindo hierarquizá-las por dificuldade.'
+    },
+    {
+      id: 3,
+      handler: handleShuffle,
+      setting: currentQuiz.shuffle,
+      title: 'Ordem aleatória',
+      description: 'Embaralhe as questões sempre que o quiz é iniciado.'
+    },
+    {
+      id: 4,
+      handler: handleRealTimeAnswer,
+      setting: currentQuiz.realTimeAnswer,
+      title: 'Resposta imediata',
+      description: 'Decida se a resposta será mostrada imediatamente após a escolha ou apenas ao final do Quiz'
+    },
+  ]
+
   async function handleSaveChanges() {
     try {
       await handleUpsertQuizSettings(currentQuiz);
 
       handleUpdateSettings({
         shuffle: currentQuiz.shuffle, 
-        customScore: currentQuiz.customScore 
+        customScore: currentQuiz.customScore ,
+        enableTimer: currentQuiz.enableTimer,
+        realTimeAnswer: currentQuiz.realTimeAnswer
       });
-      feedback.success("Mudanças salvas", "");
+      feedback.success("Mudanças salvas");
     } catch (error) {
       feedback.error("Erro ao alterar definições");
     }
@@ -48,50 +104,25 @@ export default function QuizSettings() {
   return (
     <div className="grid gap-y-12">
       {Dialog}
-      <h3 className="text-xl font-bold">Execução</h3>
+      <h3 className="text-xl font-bold">Configurações</h3>
 
       <div className="grid gap-y-12 items-center">
-        <div className="grid grid-cols-[0.2fr_2fr] items-center">
-          <Switch
-            disabled={isLoading}
-            onClick={handleCustomScore}
-            checked={currentQuiz?.customScore}
-          />
-          <div>
-            <h4 className="font-bold text-md">Customizar pontuação</h4>
-            <p className="text-accent-foreground">
-              Ao escolher esta opção, você define a pontuação individual para
-              cada questão, permitindo hierarquizá-las por dificuldade.
-            </p>
-          </div>
+
+        {settingsList.map((setting) => (
+          <div className="grid grid-cols-[0.2fr_2fr] items-center">
+            <Switch
+              disabled={isLoading}
+              onClick={setting.handler}
+              checked={setting.setting}
+            />
+            <div>
+              <h4 className="font-bold text-md">{setting.title}</h4>
+              <p className="text-accent-foreground">
+                {setting.description}
+              </p>
+            </div>
         </div>
-        <div className="grid grid-cols-[0.2fr_2fr] items-center">
-          <Switch
-            disabled={isLoading}
-            onClick={handleTimer}
-            checked={currentQuiz?.enableTimer}
-          />
-          <div>
-            <h4 className="font-bold text-md">Cronômetro</h4>
-            <p className="text-accent-foreground">
-              Defina um tempo-alvo para a finalização do quiz
-            </p>
-          </div>
-        </div>
-     
-        <div className="grid grid-cols-[0.2fr_2fr] items-center">
-          <Switch
-            disabled={isLoading}
-            onClick={handleShuffle}
-            checked={currentQuiz?.shuffle}
-          />
-          <div>
-            <h4 className="font-bold text-md">Ordem aleatória</h4>
-            <p className="text-accent-foreground">
-              Embaralhe as questões sempre que o quiz é iniciado.
-            </p>
-          </div>
-        </div>
+        ))}
 
         <MultiStageButton    
           disabled={!dirty}
@@ -106,3 +137,6 @@ export default function QuizSettings() {
     </div>
   );
 }
+
+
+export {QuizSettings as Component}

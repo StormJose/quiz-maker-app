@@ -37,7 +37,7 @@ export const fetchNumOfQuizzes = async function (filters: {column?: string, valu
     // Head to 'true' will return the count value only
 
     if (Object.entries(filters).length !== 0) {
-      const { data, count, error } = await supabase
+      const { count, error } = await supabase
         .from("quizzes")
         .select("quiz_id", { count: "exact", head: true })
         .eq("user_id", curUser?.id)
@@ -49,7 +49,7 @@ export const fetchNumOfQuizzes = async function (filters: {column?: string, valu
       }
       return count;
     } else {
-      const { data, count, error } = await supabase
+      const { count, error } = await supabase
         .from("quizzes")
         .select("quiz_id", { count: "exact", head: true })
         .eq("user_id", curUser?.id);

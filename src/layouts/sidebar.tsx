@@ -7,12 +7,11 @@ import {
   Settings,
 } from "lucide-react";
 import { useState } from "react";
-import { NavLink, useLocation, useParams } from "react-router";
+import { NavLink, useLocation } from "react-router";
 
 export default function Sidebar() {
   const location = useLocation();
-  const { quizId } = useParams();
-  const { status, currentQuiz } = useBuilder();
+  const { currentQuiz } = useBuilder();
   const [collapsed, setCollapsed] = useState(false);
   const pathnameArr = location.pathname.split("/");
   const curRoute = pathnameArr[pathnameArr.length - 1];

@@ -1,11 +1,11 @@
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import { useQuizzes } from "../../store/quizzesStore";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
-function QuizResults() {
+function QuizEnd() {
 
-    const { currentQuiz, totalScore, numCorrectAnswers } = useQuizzes()
+    const { currentQuiz, totalScore, numCorrectAnswers, startQuiz } = useQuizzes()
 
     const navigate = useNavigate()
 
@@ -13,7 +13,7 @@ function QuizResults() {
         if (currentQuiz === undefined) navigate('/')
         
     }, [])
-
+    console.log(numCorrectAnswers)
     const numQuestions = currentQuiz?.questions?.length
 
     return (
@@ -28,11 +28,10 @@ function QuizResults() {
         </header>
 
         <div className="flex  gap-2 items-start  mt-auto">
-          <Button
+          <Button onClick={() => startQuiz()}  to={`/quizzes/${currentQuiz?.quizId}/questions/${currentQuiz?.questions[0].questionId}`}
             intent={"standard"}
             >
-              <Link to={`/quizzes/${currentQuiz?.quizId}/questions/${currentQuiz?.questions[0].questionId}`}>
-              </Link>
+       
             Reiniciar Quiz
           </Button>
           <Button
@@ -46,4 +45,4 @@ function QuizResults() {
     );
 }
 
-export default QuizResults
+export default QuizEnd

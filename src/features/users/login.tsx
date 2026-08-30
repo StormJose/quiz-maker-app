@@ -14,7 +14,7 @@ export default function Login() {
      email?: string;
      password?: string;
    };
-   const { error, status, signIn, dispatch } = useAuth();
+   const { error, status, signIn } = useAuth();
 
    const [errors, setErrors] = useState<FormErrors>({
      email: "",
@@ -28,8 +28,6 @@ export default function Login() {
      const formErrors: FormErrors = {};
 
      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-     const passwordRegex =
-       /^(?=.*?[A-Z)(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/;
 
      const validEmail = emailRegex.test(form.email);
 
@@ -40,7 +38,6 @@ export default function Login() {
      if (!validEmail) formErrors.email = "Formato de email incorreto";
 
      setErrors(formErrors);
-     console.log(Object.entries(formErrors).length === 0, formErrors);
      if (Object.entries(formErrors).length === 0) {
        try {
          await signIn(form.email, form.password);
@@ -55,7 +52,7 @@ export default function Login() {
    }
 
    return (
-     <Form className="sm:max-w-[440px] max-w-[1440px] h-screen my-0 mx-auto px-8 py-[120px] flex flex-col justify-center gap-4 ">
+     <Form className="sm:max-w-110 max-w-360 h-screen my-0 mx-auto px-8 py-30 flex flex-col justify-center gap-4 ">
        {error.message && error.type != "SessionMissingError" && (
          <span className="border-[0.25px] border-red-500 text-red-800 bg-red-100 px-4 py-2 rounded-md text-center text-sm">
            {error?.message}

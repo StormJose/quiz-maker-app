@@ -2,12 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { useBeforeUnload, useBlocker } from "react-router";
 import UnsavedChangesDialog from "@/ui/unsaved-changes-dialog";
 
-export function useUnsavedChanges(data, status: string) {
+export function useUnsavedChanges<T extends object>(data: T, status: string) {
   const [showDialog, setShowDialog] = useState(false);
   const nextPathRef = useRef<string | null>(null);
 
-  
-  const [initialSettings, setInitialSettings] = useState(
+
+  const [initialSettings, setInitialSettings] = useState<T | object>(
     status === "ready" ? data : {},
   );
 
@@ -18,7 +18,7 @@ export function useUnsavedChanges(data, status: string) {
     e.returnValue = "";
   });
 
-  const blocker = useBlocker(({currentLocation, nextLocation, historyAction}) => dirty && currentLocation.pathname !== nextLocation.pathname);
+  const blocker = useBlocker(({currentLocation, nextLocation}) => dirty && currentLocation.pathname !== nextLocation.pathname);
 
   useEffect(() => {
 

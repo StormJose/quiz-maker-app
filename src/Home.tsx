@@ -1,4 +1,3 @@
-import { Link } from "react-router";
 import { Button } from "./components/ui/button";
 
 export default function Home() {
@@ -7,19 +6,21 @@ export default function Home() {
     <div className="h-screen flex justify-center items-center">
       <div className="flex  items-center gap-2">
         <Button   
+          to="/quizzes"
           intent="alternate"
 >
-            <Link to={"/quizzes"}>
+
           Encontrar um quiz
-            </Link>
+            
         </Button>
 
         <Button
+          to="quiz/new"
           intent={"standard"}
           className={"px-4 py-1.5"}>
-            <Link to={"/quiz/new"}>
+
               Criar quiz
-            </Link>
+     
         </Button>
       </div>
     </div>

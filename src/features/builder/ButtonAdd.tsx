@@ -1,5 +1,5 @@
 
-export default function ButtonAdd({onClick}) {
+export default function ButtonAdd({onClick}: {onClick: () => void}) {
   return (
     <button
       type="button"

@@ -3,7 +3,7 @@ import BuilderSkeleton from "@/skeletons/BuilderSkeleton";
 import { useBuilder } from "@/store/builderStore";
 import { Button } from "@/components/ui/button";
 
-export default function Preview() {
+function Preview() {
   const [curQuestion, setCurQuestion] = useState(0)
 
   const {
@@ -65,3 +65,4 @@ export default function Preview() {
 
 
 
+export {Preview as Component}

@@ -3,10 +3,9 @@ import {
   Outlet,
   redirect,
 } from "react-router";
-import BackLink from "./BackLink";
 import Header from "./Header";
 import { getCurrentUser } from "@/auth/auth";
-import { useWarningDialog, WarningDialogProvider } from "@/hooks/useWarningDialog";
+import { WarningDialogProvider } from "@/hooks/useWarningDialog";
 import WarningDialog from "./dialogs/warning-dialog";
 
 export default function AppLayout() {

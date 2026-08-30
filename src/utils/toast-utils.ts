@@ -3,10 +3,11 @@ import toast from "react-hot-toast";
 
 export const feedback = {
     
-  success: (message: string = "Ação concluída com sucesso!", ...args: [string]) =>
+  // toast.function also accept a second "args" argument.
+  success: (message: string = "Ação concluída com sucesso!") =>
     toast.success(message),
-  error: (message: string = "Algo deu errado :/", ...args: []) =>
+  error: (message: string = "Algo deu errado :/") =>
     toast.error(message),
-  loading: (message: string = "Carregando", ...args: []) =>
+  loading: (message: string = "Carregando") =>
     toast.loading(message),
 };

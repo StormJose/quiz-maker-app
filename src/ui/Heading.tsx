@@ -15,7 +15,11 @@ const headingVariants = cva("leading-snug", {
   },
 });
 
+type HeadingTag = NonNullable<VariantProps<typeof headingVariants>["as"]>;
+
+
 type HeadingProps = VariantProps<typeof headingVariants> & {
+  as?: HeadingTag;
   className?: string;
   children: React.ReactNode;
 };

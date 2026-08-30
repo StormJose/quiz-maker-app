@@ -5,7 +5,7 @@ import { Form, NavLink, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
 
 export default function SignUp() {
-  const { error, currentUser, signUp, dispatch } = useAuth();
+  const { error, currentUser, signUp } = useAuth();
 
   const navigate = useNavigate();
 
@@ -23,7 +23,7 @@ export default function SignUp() {
   }, [currentUser, error]);
 
   async function handleSubmit() {
-    const formErrors = {};
+    const formErrors = { email: "", password: "" };
 
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     const passwordRegex =
@@ -44,11 +44,11 @@ export default function SignUp() {
 
     setErrors(formErrors);
 
-    if (Object.entries(formErrors).length === 0) {
+    if (!formErrors.email && !formErrors.password) {
       try {
-        const user = await signUp(form.email, form.password);
+        await signUp(form.email, form.password);
 
-        if (user?.id) navigate("/");
+        navigate("/");
       } catch (error) {
         console.error(error);
       }
@@ -57,7 +57,7 @@ export default function SignUp() {
 
   return (
     <Form className="sm:max-w-[440px] max-w-[1440px] h-screen my-0 mx-auto px-8 py-[120px] flex flex-col justify-center gap-4 transition-all">
-      {error == "User already registered" && (
+      {error.message === "User already registered" && (
         <div className="flex flex-col text-center gap-2">
           {" "}
           <span className="text-center border-[1.55px] font-semibold text-gray-600 rounded-xl py-2 ">

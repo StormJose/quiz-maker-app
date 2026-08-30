@@ -1,6 +1,6 @@
 import { signInWithEmail, signOutUser, signUpNewUser } from "@/auth/auth";
 import { toMessage } from "@/lib/errors";
-import { Action, InitialState } from "@/types/auth";
+import { Action, AuthError, InitialState } from "@/types/auth";
 import supabase from "@/utils/supabase";
 import {
   isAuthApiError,
@@ -8,12 +8,21 @@ import {
 } from "@supabase/supabase-js";
 import {
   createContext,
+  Dispatch,
+  ReactNode,
   useCallback,
   useContext,
   useReducer,
 } from "react";
 
-const AuthContext = createContext();
+type AuthContextValue = InitialState & {
+  signUp: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
+  dispatch: Dispatch<Action>;
+};
+
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 const initialState: InitialState = {
   status: "idle",
@@ -24,7 +33,7 @@ const initialState: InitialState = {
   currentUser: {},
 };
 
-function reducer(state: InitialState, action: Action) {
+function reducer(state: InitialState, action: Action): InitialState {
   switch (action.type) {
     case "setLoading":
       return {
@@ -34,13 +43,13 @@ function reducer(state: InitialState, action: Action) {
     case "getCurrentUser":
       return {
         ...state,
-        currentUser: action.payload,
+        currentUser: action.payload ?? null,
       };
 
     case "setUser":
       return {
         ...state,
-        currentUser: action.payload,
+        currentUser: action.payload ?? null,
         status: "ready",
       };
     case "setError":
@@ -59,16 +68,18 @@ function reducer(state: InitialState, action: Action) {
           ...state,
           status: "idle",
           error: {
+            type: "AuthApiError",
             message: "E-mail ou Senha estão incorretos",
           },
         };
       }
       if (action.payload instanceof TypeError) {
-    
+
         return {
           ...state,
-        
+          status: "idle",
           error: {
+            type: "TypeError",
             message: "Houve um erro interno. Tente novamente mais tarde :/",
           },
         };
@@ -76,7 +87,7 @@ function reducer(state: InitialState, action: Action) {
         return {
           ...state,
           status: "idle",
-          error: action.payload,
+          error: action.payload as AuthError,
         };
       }
 
@@ -84,10 +95,13 @@ function reducer(state: InitialState, action: Action) {
       return {
         ...initialState,
       };
+
+    default:
+      return state;
   }
 }
 
-function AuthProvider({ children }) {
+function AuthProvider({ children }: { children: ReactNode }) {
   const [{ status, error, currentUser }, dispatch] = useReducer(
     reducer,
     initialState,
@@ -116,7 +130,7 @@ function AuthProvider({ children }) {
 
       if (error) throw error;
 
-      if (data) {
+      if (data?.user) {
         const { data: userData, error: creationError } = await supabase
           .from("users")
           .insert([{ id: data.user.id }]);
@@ -134,11 +148,8 @@ function AuthProvider({ children }) {
 
   const signOut = useCallback(async () => {
     try {
-      const error = await signOutUser();
-
-      if (!error) {
-        dispatch({ type: "resetAuth" });
-      }
+      await signOutUser();
+      dispatch({ type: "resetAuth" });
     } catch (error) {
       dispatch({ type: "setError", payload: toMessage(error) });
       console.error(error);

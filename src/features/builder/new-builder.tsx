@@ -6,11 +6,8 @@ import { Quiz } from "@/types/quiz.ts";
 import { QuestionsSidebar } from "./questions-sidebar.tsx";
 import { QuestionEditor } from "./question-editor.tsx";
 import { QuestionToolbox } from "./question-toolbox.tsx";
-import { Switch } from "@/components/ui/switch.tsx";
-import FloatingMenu from "@/ui/menus/floating-menu.tsx";
 
-
-export default function NewBuilder() {
+function NewBuilder() {
   const {
     status,
     persist,
@@ -24,7 +21,7 @@ export default function NewBuilder() {
 
   const onRestoreAction = (quiz?: Quiz): void => setCurrentQuiz(quiz, numQuizzes)
   const onSaveDraftAction = (status?: any): void => saveDraft(status)
-  const { savedDraft } = useAutoSaveQuiz(
+  useAutoSaveQuiz(
     currentQuiz,
     onRestoreAction,
     status,
@@ -81,3 +78,5 @@ export default function NewBuilder() {
   
 }
 
+
+export { NewBuilder as Component } 

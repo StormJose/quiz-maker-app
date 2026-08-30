@@ -1,15 +1,14 @@
 
-import { useLocation, useNavigate, useNavigation } from "react-router"
+import { useLocation, useNavigate } from "react-router"
 import { useBuilder } from "@/store/builderStore"
 import { Switch } from "@/components/ui/switch";
 
 
 export default function FloatingMenu() {
-  const navigation = useNavigation();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const {currentQuiz, resetBuilder} = useBuilder();
+  const {currentQuiz} = useBuilder();
   const isChecked = location.pathname.endsWith("/preview");
 
   function handleSwitchButton() {
@@ -22,20 +21,14 @@ export default function FloatingMenu() {
   }
 
 
-  function handleLeaveBuilder() {
-    navigate('/quizzes')
-    resetBuilder()
-  }
-  
-
   return (
     <div className="" > 
-              <div className="flex items-center gap-2">
-                <p className="text-gray-600">{ isChecked ? "Preview"  : "Criação"}</p>
-                <Switch 
-                checked={isChecked} 
-                onClick={handleSwitchButton} />
-              </div>   
+        <div className="flex items-center gap-2 px-4 py-2.5 border-[1.55px] rounded-xl">
+          <p className="text-gray-600">{ isChecked ? "Preview"  : "Criação"}</p>
+          <Switch 
+              checked={isChecked} 
+              onClick={handleSwitchButton} />
+          </div>   
   
     </div>
   );

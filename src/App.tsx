@@ -1,26 +1,20 @@
-import { createBrowserRouter,  RouterProvider } from "react-router"
+import { createBrowserRouter,  RouteObject, RouterProvider } from "react-router"
 import Home from "./Home"
 import AppLayout, { protectedLoader } from "./ui/AppLayout";
 import AllQuizzes, {
   loader as allQuizzesLoader,
 } from "./features/quizzes/AllQuizzes";
 import Quiz, { loader as quizLoader } from "./features/quizzes/Quiz";
-import QuizResults from "./features/quizzes/QuizResults";
+import QuizEnd from "./features/quizzes/QuizEnd";
 import InQuiz, {
   loader as questionsLoader,
 } from "./features/quiz-taking/InQuiz";
 import Register from "./features/users/signup";
 import Login from "./features/users/login";
-import NewBuilder from "./features/builder/new-builder";
-import BuilderLayout, {
-  editQuizLoader,
-  newQuizLoader,
-} from "./layouts/builder-layout";
-import QuizSettings from "./features/settings/quiz-settings";
 import ErrorBoundary from "./ui/error-boundary";
-import Preview from "./features/builder/Preview";
 import NotFound from "./ui/not-found";
 import Settings from "./features/users/settings";
+
 
 const routes = [
   {
@@ -39,27 +33,36 @@ const routes = [
     errorElement: <ErrorBoundary />,
     loader: quizLoader,
   },
-
+    {
+    path: "/quiz/:quizid/end",
+    element: <QuizEnd />,
+     errorElement: <ErrorBoundary />,
+  },
   {
     path: "/quiz/new",
     id: "new-quiz",
-    element: <BuilderLayout />,
-    loader: newQuizLoader,
+    lazy: async () => {
+      const { Component, newQuizLoader } = await import("./layouts/builder-layout")
+      return { Component, loader: newQuizLoader }
+
+    },
+
     errorElement: <ErrorBoundary />,
     children: [
       {
+  
         path: "/",
-        element: <NewBuilder />,
+        lazy: () => import("./features/builder/new-builder"),
         errorElement: <ErrorBoundary />,
       },
       {
         path: "settings",
-        element: <QuizSettings />,
+        lazy: () => import("./features/settings/quiz-settings"),
         errorElement: <ErrorBoundary />,
       },
       {
         path: "preview",
-        element: <Preview />,
+        lazy: () => import("./features/builder/Preview"),
         errorElement: <ErrorBoundary />,
       },
     ],
@@ -67,23 +70,25 @@ const routes = [
   {
     path: "/quiz/:quizId/edit",
     id: "edit-quiz",
-    element: <BuilderLayout />,
-    loader: editQuizLoader,
+    lazy: async () => {
+      const { Component, editQuizLoader } = await import ("./layouts/builder-layout");
+      return { Component, loader: editQuizLoader }
+    } ,
     errorElement: <ErrorBoundary />,
     children: [
       {
         path: "/",
-        element: <NewBuilder />,
+        lazy: () => import("./features/builder/new-builder"),
         errorElement: <ErrorBoundary />,
       },
       {
         path: "settings",
-        element: <QuizSettings />,
+        lazy: () => import("./features/settings/quiz-settings"),
         errorElement: <ErrorBoundary />,
       },
       {
         path: "preview",
-        element: <Preview />,
+        lazy: () => import("./features/builder/Preview"),
         errorElement: <ErrorBoundary />,
       },
     ],
@@ -91,7 +96,7 @@ const routes = [
 
   {
     path: "/quiz/results",
-    element: <QuizResults />,
+    // element: <QuizResults />,
   },
   {
     path: "/settings",
@@ -110,19 +115,50 @@ export const router = createBrowserRouter([
     path: "/",
     element: <AppLayout />,
     loader: protectedLoader,
-    children: routes.map((route) => ({
-      path: route.path === "/" ? undefined : route.path,
-      element: route.element,
-      index: route.path === "/",
-      errorElement: route.errorElement,
-      loader: route.loader,
-      children: route.children?.map((child) => ({
-        path: child.path === "/" ? undefined : child.path,
-        element: child.element,
-        index: child.path === "/",
-        errorElement: child.errorElement,
-      })),
-    })),
+    children: routes.map((route): RouteObject => {
+      const isIndexRoute = route.path === "/";
+
+      const children = route.children?.map((child): RouteObject => {
+        const isIndex = child.path === "/";
+
+        if (isIndex) {
+
+          return   {
+            lazy: child.lazy,
+            index: true,
+            errorElement: child.errorElement,
+          };
+        }
+
+          return   {
+            lazy: child.lazy,
+            path: child.path,
+            index: false,
+            errorElement: child.errorElement,
+          }; 
+      });
+
+      if (isIndexRoute) {
+        return {
+          path: route.path,
+          index: true,
+          lazy: route.lazy,
+          element: route.element,
+          errorElement: route.errorElement,
+        };
+      }
+
+
+      return {
+        path: route.path,
+        index: false,
+        lazy: route.lazy,
+        element: route.element,
+        loader: route.loader,
+        errorElement: route.errorElement,
+        children,
+      };
+    }),
   },
   {
     path: "/signup",

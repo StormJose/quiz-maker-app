@@ -1,12 +1,16 @@
 import { useBuilder } from "@/store/builderStore";
 import Input from "./Input";
 import { Button } from "@/components/ui/button";
+import { Question } from "@/types/questions";
 
 export default function Answers() {
   const { curQuestion, updateQuestion } = useBuilder();
 
   async function handleAddAnswer() {
-    const order = curQuestion?.answers.length + 1;
+
+    if (!curQuestion) return;
+
+    const order = curQuestion.answers.length + 1;
 
     const newAnswer = {
       answerId: crypto.randomUUID(),
@@ -15,15 +19,17 @@ export default function Answers() {
       order,
     };
 
-    const updatedQuestion = {
-      ...curQuestion,
-      answers: [...curQuestion?.answers, newAnswer],
-    };
+
+    const updatedQuestion: Question = {
+    ...curQuestion,
+    answers: [...curQuestion.answers, newAnswer],
+
+  };
 
     updateQuestion(updatedQuestion)
   }
 
-  const answers = curQuestion.answers?.length > 0 ? curQuestion?.answers : [];
+  const answers = (curQuestion?.answers?.length ?? 0) > 0 ? curQuestion?.answers : [];
   const maxAnswers = curQuestion?.answers.length === 4;
   return (
     <div className="py-12">
