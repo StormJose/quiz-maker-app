@@ -1,22 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { useBeforeUnload, useBlocker } from "react-router";
 import UnsavedChangesDialog from "@/ui/unsaved-changes-dialog";
-import { Quiz } from "@/types/quiz";
 
-export function useUnsavedChanges(currentQuiz: Quiz, status: string) {
+export function useUnsavedChanges(data, status: string) {
   const [showDialog, setShowDialog] = useState(false);
   const nextPathRef = useRef<string | null>(null);
 
-  const settings = {
-    shuffle: currentQuiz.shuffle,
-    customScore: currentQuiz.customScore,
-  };
-
+  
   const [initialSettings, setInitialSettings] = useState(
-    status === "ready" ? settings : {},
+    status === "ready" ? data : {},
   );
 
-  const dirty = JSON.stringify(initialSettings) !== JSON.stringify(settings);
+  const dirty = JSON.stringify(initialSettings) !== JSON.stringify(data);
 
   useBeforeUnload((e) => {
     e.preventDefault();
